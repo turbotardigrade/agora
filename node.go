@@ -1,35 +1,92 @@
 package main
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
+	"io"
+
+	peer "gx/ipfs/QmfMmLGoKzCHDN7cGgk64PJr4iipzidDRME8HABSJqvmhC/go-libp2p-peer"
 
 	"github.com/ipfs/go-ipfs/core"
+	"github.com/ipfs/go-ipfs/core/corenet"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 )
 
-var MyNode *core.IpfsNode
+// MyNode provides a global Node instance of user's own node
+var MyNode *Node
 
 func init() {
-	fmt.Println("INIT")
-
-	// Basic ipfsnode setup
-	// @TODO take this from Config files
-	r, err := fsrepo.Open("~/.ipfs2")
+	var err error
+	MyNode, err = NewNode("~/.ipfs2")
 	if err != nil {
-		panic(err)
+		panic(err) // @TODO handle this gracefully
+	}
+}
+
+type Node struct {
+	ipfsNode *core.IpfsNode
+	cancel   context.CancelFunc
+}
+
+func NewNode(path string) (*Node, error) {
+	r, err := fsrepo.Open(path)
+	if err != nil {
+		return nil, err
 	}
 
-	ctx, _ := context.WithCancel(context.Background())
-	//defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg := &core.BuildCfg{
 		Repo:   r,
 		Online: true,
 	}
 
-	MyNode, err = core.NewNode(ctx, cfg)
+	node, err := core.NewNode(ctx, cfg)
 	if err != nil {
-		panic(err) // @TODO handle error more gracefully
+		return nil, err
 	}
+
+	return &Node{
+		ipfsNode: node,
+		cancel:   cancel,
+	}, nil
+}
+
+func (n *Node) Get(fromPeerID string, path string) (string, error) {
+	target, err := peer.IDB58Decode(fromPeerID)
+	if err != nil {
+		return "", err
+	}
+
+	con, err := corenet.Dial(n.ipfsNode, target, path)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	io.Copy(&buf, con)
+
+	return buf.String(), nil
+}
+
+func (n *Node) Post(toPeerID string, req interface{}, path string) (string, error) {
+	target, err := peer.IDB58Decode(toPeerID)
+	if err != nil {
+		return "", err
+	}
+
+	con, err := corenet.Dial(n.ipfsNode, target, path)
+	if err != nil {
+		return "", err
+	}
+
+	jbuf, _ := json.Marshal(&req)
+	con.Write(jbuf)
+
+	var buf bytes.Buffer
+	io.Copy(&buf, con)
+
+	return buf.String(), nil
+
 }
