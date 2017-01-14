@@ -29,14 +29,16 @@ func (p *PeerServer) handleFunc(pattern string, handler func(net.Stream)) error 
 	// listen asynchronously
 	go func() {
 		for {
-			con, err := list.Accept()
+			stream, err := list.Accept()
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			handler(con)
-			con.Close()
+			fmt.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
+
+			handler(stream)
+			stream.Close()
 		}
 	}()
 

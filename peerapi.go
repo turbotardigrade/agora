@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"gx/ipfs/QmdXimY9QHaasZmw6hWojWnCJvfgxETjZQfg9g6ZrA9wMX/go-libp2p-net"
-)
+import "gx/ipfs/QmdXimY9QHaasZmw6hWojWnCJvfgxETjZQfg9g6ZrA9wMX/go-libp2p-net"
 
 func StartPeerAPI() {
 	peerAPI := NewPeerServer(MyNode)
@@ -34,6 +31,5 @@ type GetHealthResp struct {
 }
 
 func GetHealth(stream net.Stream) {
-	fmt.Printf("Connection from: %s\n", stream.Conn().RemotePeer())
 	WriteJSON(stream, GetHealthResp{"OK"})
 }
