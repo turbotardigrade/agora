@@ -16,6 +16,8 @@ import (
 // MyNode provides a global Node instance of user's own node
 var MyNode *Node
 
+// @TODO create Node locally in execution folder, do not use the one
+// in the home folder
 func init() {
 	var err error
 	MyNode, err = NewNode("~/.ipfs2")
