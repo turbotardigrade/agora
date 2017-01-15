@@ -11,5 +11,5 @@ func ReadJSON(stream net.Stream, ptr interface{}) {
 
 func WriteJSON(stream net.Stream, obj interface{}) {
 	res, _ := json.Marshal(&obj)
-	stream.Write([]byte(res))
+	stream.Write(res)
 }

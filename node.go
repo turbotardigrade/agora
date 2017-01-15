@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io"
+	"fmt"
+	"reflect"
 
 	peer "gx/ipfs/QmfMmLGoKzCHDN7cGgk64PJr4iipzidDRME8HABSJqvmhC/go-libp2p-peer"
 
@@ -55,40 +54,23 @@ func NewNode(path string) (*Node, error) {
 	}, nil
 }
 
-func (n *Node) Get(fromPeerID string, path string) (string, error) {
-	target, err := peer.IDB58Decode(fromPeerID)
+func (n *Node) Request(targetPeer string, path string, body interface{}, resp interface{}) error {
+	target, err := peer.IDB58Decode(targetPeer)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	con, err := corenet.Dial(n.ipfsNode, target, path)
+	stream, err := corenet.Dial(n.ipfsNode, target, path)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	var buf bytes.Buffer
-	io.Copy(&buf, con)
-
-	return buf.String(), nil
-}
-
-func (n *Node) Post(toPeerID string, req interface{}, path string) (string, error) {
-	target, err := peer.IDB58Decode(toPeerID)
-	if err != nil {
-		return "", err
+	if reflect.ValueOf(resp).Kind() != reflect.Ptr {
+		fmt.Println("WARNING: You must pass resp by &reference and not by value. This is not done for a request to", targetPeer, path)
 	}
 
-	con, err := corenet.Dial(n.ipfsNode, target, path)
-	if err != nil {
-		return "", err
-	}
+	WriteJSON(stream, &body)
+	ReadJSON(stream, &resp)
 
-	jbuf, _ := json.Marshal(&req)
-	con.Write(jbuf)
-
-	var buf bytes.Buffer
-	io.Copy(&buf, con)
-
-	return buf.String(), nil
-
+	return nil
 }

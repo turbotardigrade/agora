@@ -7,32 +7,48 @@ import (
 )
 
 func TestPeerAPI(t *testing.T) {
+
+	// Create TestNode
 	node, err := NewNode("~/.ipfs")
 	if err != nil {
 		panic(err)
 	}
 
+	// Start PeerAPI server and get it's nodeID
 	StartPeerAPI()
+	targetPeer := MyNode.ipfsNode.Identity.Pretty()
 
 	// Might need to give some time for peerAPI info to propagate
 	// through IPFS network
 	time.Sleep(5 * time.Second)
 
-	fmt.Println("\nTry /comments")
-	buf, err := node.Post("QmYHZAqj9Y1D2agM29BwtHPx5CvWKLwtfETkhb73ZCRoqs", GetCommentsReq{"1"}, "/comments")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("resp: ", buf)
-
+	//////////////////////////////
+	// Testing health API
 	fmt.Println("\nTry /health")
-	buf, err = node.Get("QmYHZAqj9Y1D2agM29BwtHPx5CvWKLwtfETkhb73ZCRoqs", "/health")
+
+	var healthResp GetHealthResp
+
+	err = node.Request(targetPeer, "/health", nil, &healthResp)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("resp: ", buf)
+	fmt.Println("resp: ", healthResp)
 
-	if buf != `{"Status":"OK"}` {
-		t.Errorf(`Expected Health to be {"Status":"OK"} and not %s`, buf)
+	if healthResp.Status != "OK" {
+		t.Errorf(`Expected Health Status to be OK and not '%s'`, healthResp.Status)
 	}
+
+	//////////////////////////////
+	// Testing comments API
+	fmt.Println("\nTry /comments")
+
+	var cmtReq = GetCommentsReq{"1"}
+	var cmtResp GetCommentsResp
+
+	err = node.Request(targetPeer, "/comments", cmtReq, &cmtResp)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("resp: ", cmtResp)
 }
