@@ -15,7 +15,7 @@ func TestPeerAPI(t *testing.T) {
 	}
 
 	// Start PeerAPI server and get it's nodeID
-	StartPeerAPI()
+	StartPeerAPI(MyNode)
 	targetPeer := MyNode.ipfsNode.Identity.Pretty()
 
 	// Might need to give some time for peerAPI info to propagate
@@ -42,13 +42,10 @@ func TestPeerAPI(t *testing.T) {
 	// Testing comments API
 	fmt.Println("\nTry /comments")
 
-	var cmtReq = GetCommentsReq{"1"}
-	var cmtResp GetCommentsResp
-
-	err = node.Request(targetPeer, "/comments", cmtReq, &cmtResp)
+	comments, err := Cl{node}.GetComments(targetPeer, "1")
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("resp: ", cmtResp)
+	fmt.Println("resp: ", comments)
 }

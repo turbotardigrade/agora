@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	StartPeerAPI()
+	StartPeerAPI(MyNode)
 
 	// @TODO have some mechanism for graceful shutdown
 	for {
