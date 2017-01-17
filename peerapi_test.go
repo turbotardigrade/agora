@@ -4,28 +4,49 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/ipfs/go-ipfs/repo/config"
 )
 
-var TestNode *Node
+const testNodePath = "./data/TestNode"
+
+var testNode *Node
 
 func init() {
 	fmt.Println("------------------------------------------------------------")
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
 
-	// Create TestNode
+	// Create testNode
+	if !Exists(testNodePath) {
+		// Need to change Addresses in order to avoid clashes with MyNode
+		addr := &config.Addresses{
+			Swarm: []string{
+				"/ip4/0.0.0.0/tcp/4002",
+				"/ip6/::/tcp/4002",
+			},
+			API:     "/ip4/127.0.0.1/tcp/5002",
+			Gateway: "/ip4/127.0.0.1/tcp/8081",
+		}
+
+		err := NewNodeRepo(testNodePath, addr)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	var err error
-	TestNode, err = NewNode("~/.ipfs")
+	testNode, err = NewNode(testNodePath)
 	if err != nil {
 		panic(err)
 	}
 
 	// Start PeerAPIs
-	StartPeerAPI(TestNode)
+	StartPeerAPI(testNode)
 
 	// Might need to give some time for peerAPI info to propagate
 	// through IPFS network
-	fmt.Println("Wait 10 sec to seed node information to network...")
+	fmt.Println("Wait 5 sec to seed node information to network...")
 	time.Sleep(5 * time.Second)
 	fmt.Println("\n------------------------------------------------------------")
 	fmt.Println("Start tests")
@@ -33,13 +54,15 @@ func init() {
 }
 
 func TestGetComments(t *testing.T) {
+	// TODO this is just for the time being
+	KnownNodes = []string{testNode.ipfsNode.Identity.Pretty()}
 	fmt.Println(GetComments("1"))
 }
 
 func TestCommentsAPI(t *testing.T) {
 	fmt.Println("\nTry /comments")
 
-	targetPeer := TestNode.ipfsNode.Identity.Pretty()
+	targetPeer := testNode.ipfsNode.Identity.Pretty()
 	comments, err := Client{MyNode}.GetComments(targetPeer, "1")
 	if err != nil {
 		panic(err)
@@ -51,7 +74,7 @@ func TestCommentsAPI(t *testing.T) {
 func TestHealthAPI(t *testing.T) {
 	fmt.Println("\nTry /health")
 
-	targetPeer := TestNode.ipfsNode.Identity.Pretty()
+	targetPeer := testNode.ipfsNode.Identity.Pretty()
 	isHealthy, err := Client{MyNode}.CheckHealth(targetPeer)
 	if err != nil {
 		panic(err)
