@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.7
+
+install:
+  - go get -u -d github.com/ipfs/go-ipfs
+  - cd $GOPATH/src/github.com/ipfs/go-ipfs
+  - make install
+  - cd $TRAVIS_BUILD_DIR
+  - go get ./...
+
+before_script:
+  - go get -u github.com/golang/lint/golint
+
+script:
+  - golint
+
+git:
+  depth: 1 # speed up git clone
