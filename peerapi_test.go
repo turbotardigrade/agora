@@ -55,14 +55,14 @@ func init() {
 
 func TestGetComments(t *testing.T) {
 	// TODO this is just for the time being
-	KnownNodes = []string{testNode.ipfsNode.Identity.Pretty()}
+	KnownNodes = []string{testNode.Identity.Pretty()}
 	fmt.Println(GetComments("1"))
 }
 
 func TestCommentsAPI(t *testing.T) {
 	fmt.Println("\nTry /comments")
 
-	targetPeer := testNode.ipfsNode.Identity.Pretty()
+	targetPeer := testNode.Identity.Pretty()
 	comments, err := Client{MyNode}.GetComments(targetPeer, "1")
 	if err != nil {
 		panic(err)
@@ -74,7 +74,7 @@ func TestCommentsAPI(t *testing.T) {
 func TestHealthAPI(t *testing.T) {
 	fmt.Println("\nTry /health")
 
-	targetPeer := testNode.ipfsNode.Identity.Pretty()
+	targetPeer := testNode.Identity.Pretty()
 	isHealthy, err := Client{MyNode}.CheckHealth(targetPeer)
 	if err != nil {
 		panic(err)

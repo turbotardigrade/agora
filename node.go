@@ -41,8 +41,8 @@ func init() {
 }
 
 type Node struct {
-	ipfsNode *core.IpfsNode
-	cancel   context.CancelFunc
+	*core.IpfsNode
+	cancel context.CancelFunc
 }
 
 func NewNode(path string) (*Node, error) {
@@ -64,7 +64,7 @@ func NewNode(path string) (*Node, error) {
 	}
 
 	return &Node{
-		ipfsNode: node,
+		IpfsNode: node,
 		cancel:   cancel,
 	}, nil
 }
@@ -75,7 +75,7 @@ func (n *Node) Request(targetPeer string, path string, body interface{}, resp in
 		return err
 	}
 
-	stream, err := corenet.Dial(n.ipfsNode, target, path)
+	stream, err := corenet.Dial(n.IpfsNode, target, path)
 	if err != nil {
 		return err
 	}
