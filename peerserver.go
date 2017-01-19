@@ -7,21 +7,27 @@ import (
 	"github.com/ipfs/go-ipfs/core/corenet"
 )
 
+// PeerServer asynchronous (non-blocking) server that registers
+// handler functions listening to specific endpoints like /health
 type PeerServer struct {
 	*Node
 }
 
+// NewPeerServer constructs PeerServer given a node on which the
+// server binds its services
 func NewPeerServer(node *Node) PeerServer {
 	return PeerServer{Node: node}
 }
 
-func (p *PeerServer) handleFunc(pattern string, handler func(net.Stream)) error {
-	list, err := corenet.Listen(p.IpfsNode, pattern)
+// HandleFunc registers a function which get called to handle incoming
+// requests triggered on given endpoint
+func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error {
+	list, err := corenet.Listen(p.IpfsNode, endpoint)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("I am peer: %s and listening at %s \n", p.Identity.Pretty(), pattern)
+	fmt.Printf("I am peer: %s and listening at %s \n", p.Identity.Pretty(), endpoint)
 
 	// listen asynchronously
 	go func() {

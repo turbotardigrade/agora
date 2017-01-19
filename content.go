@@ -8,6 +8,8 @@ import "fmt"
 - Verify signature with author key
 */
 
+// Comment defines the data structure used by our application to
+// handle comments and also provides the model for database
 type Comment struct {
 	PostID string
 	Parent string

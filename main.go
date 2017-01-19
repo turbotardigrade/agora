@@ -1,9 +1,12 @@
 package main
 
 func main() {
+
+	// Starts PeerServer (non-blocking)
 	StartPeerAPI(MyNode)
 
-	// @TODO have some mechanism for graceful shutdown
+	// @TODO API server for GUI should be running and blocking
+	// here instead of the endless loop
 	for {
 		// Endless loop
 	}

@@ -8,15 +8,20 @@ import (
 	"path"
 )
 
+// ReadJSON reads stream content in JSON format into provided the
+// struct variable. Important: Struct variable must be provided as a
+// pointer
 func ReadJSON(stream net.Stream, ptr interface{}) {
 	json.NewDecoder(stream).Decode(ptr)
 }
 
+// WriteJSON writes provided struct as JSON into stream.
 func WriteJSON(stream net.Stream, obj interface{}) {
 	res, _ := json.Marshal(&obj)
 	stream.Write(res)
 }
 
+// Exists check if path exists
 func Exists(path string) bool {
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
@@ -27,7 +32,11 @@ func Exists(path string) bool {
 	return true
 }
 
-func checkWriteable(dir string) error {
+// CheckWriteable checks if directory is writable by the
+// application. It tests this by creating a temporary file on that
+// directory.
+// Taken from github.com/ipfs/go-ipfs/blob/master/cmd/ipfs/init.go
+func CheckWriteable(dir string) error {
 	_, err := os.Stat(dir)
 	if err == nil {
 		// dir exists, make sure we can write to it

@@ -17,7 +17,12 @@ import (
 )
 
 const (
-	MyNodePath      = "./data/MyNode"
+	// MyNodePath specifies the path where the node repository
+	// (containing data and configuration) of the default node
+	// used by the application is stored
+	MyNodePath = "./data/MyNode"
+
+	// nBitsForKeypair sets the strength of keypair
 	nBitsForKeypair = 2048
 )
 
@@ -36,15 +41,19 @@ func init() {
 
 	MyNode, err = NewNode(MyNodePath)
 	if err != nil {
-		panic(err) // @TODO handle this gracefully
+		panic(err)
 	}
 }
 
+// Node provides an abstraction for IpfsNode and is the prefered way
+// of accessing Nodes in our application. Note that IpfsNode is an
+// embedded type.
 type Node struct {
 	*core.IpfsNode
 	cancel context.CancelFunc
 }
 
+// NewNode creates a new Node from an existing node repository
 func NewNode(path string) (*Node, error) {
 	r, err := fsrepo.Open(path)
 	if err != nil {
@@ -69,27 +78,39 @@ func NewNode(path string) (*Node, error) {
 	}, nil
 }
 
+// Request is the generalized method to connect to another peer and
+// send requests and receive responses. This is used by Client defined
+// in peerapi.go and should not be used directly.
 func (n *Node) Request(targetPeer string, path string, body interface{}, resp interface{}) error {
+
+	// Check if Node hash is valid
 	target, err := peer.IDB58Decode(targetPeer)
 	if err != nil {
 		return err
 	}
 
+	// Connect to targetPeer
 	stream, err := corenet.Dial(n.IpfsNode, target, path)
 	if err != nil {
 		return err
 	}
 
+	// This gives you a warning if you accidentially send a
+	// pointer instead of the struct as body, note that the
+	// warning will not stop the transaction
 	if reflect.ValueOf(resp).Kind() != reflect.Ptr {
 		fmt.Println("WARNING: You must pass resp by &reference and not by value. This is not done for a request to", targetPeer, path)
 	}
 
+	// Exchange request and response
 	WriteJSON(stream, &body)
 	ReadJSON(stream, &resp)
 
 	return nil
 }
 
+// NewNodeRepo will create a new data and configuration folder for a
+// new IPFS node at the provided location
 func NewNodeRepo(repoRoot string, addr *config.Addresses) error {
 	os.MkdirAll(repoRoot, 0755)
 
