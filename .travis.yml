@@ -4,11 +4,15 @@ go:
   - 1.7
 
 install:
-  - go get -u -d github.com/ipfs/go-ipfs
+  - go get -u github.com/whyrusleeping/gx
+  - go get -u github.com/whyrusleeping/gx-go
+  - go get -u -d github.com/ipfs/go-ipfs 2> /dev/null
   - cd $GOPATH/src/github.com/ipfs/go-ipfs
+  - gx install
+  - go install ./cmd/ipfs
   - make install
   - cd $TRAVIS_BUILD_DIR
-  - go get ./...
+  - go get
 
 before_script:
   - go get -u github.com/golang/lint/golint
