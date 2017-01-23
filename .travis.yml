@@ -5,7 +5,8 @@ go:
 
 install:
   - go get -u github.com/whyrusleeping/gx
-  - go get -u -d github.com/ipfs/go-ipfs 2> /dev/null
+  - go get -u github.com/whyrusleeping/gx-go
+  - go get -u -d github.com/ipfs/go-ipfs
   - cd $GOPATH/src/github.com/ipfs/go-ipfs
   - make install
   - cd $TRAVIS_BUILD_DIR
