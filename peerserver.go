@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gx/ipfs/QmdXimY9QHaasZmw6hWojWnCJvfgxETjZQfg9g6ZrA9wMX/go-libp2p-net"
+	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
 
 	"github.com/ipfs/go-ipfs/core/corenet"
 )
