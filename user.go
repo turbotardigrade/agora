@@ -1,6 +1,9 @@
 package main
 
+// @TODO Use Constructor and Getter when interacting with User struct
+
 type User struct {
-	Key   string
-	Alias string
+	PubKey  string
+	PrivKey string
+	Alias   string
 }

@@ -1,5 +1,20 @@
 # Agora - Decentralized crowd-curated discussion platform
 
+# Project overview
+```
+data/         - Folder storing all user data like node config and databases
+
+main.go       - Entrypoint of the program
+
+connection.go - Manage connections with other nodes
+content.go    - Manages Posts and Comments
+data.go       - Manages data on the filesystem / IPFS layer
+node.go       - Abstraction over IPFS node to deal with libp2p network
+peerapi.go    - API and client
+peerserver.go - Generalized server which can run on any node to provide services
+user.go       - User management
+```
+
 # Build
 
 ## Dependencies
@@ -19,7 +34,9 @@ Gx is needed to get dependencies hosted on IPFS.
 
 ```
 go get -u github.com/whyrusleeping/gx
-go get ./...
+go get -u github.com/whyrusleeping/gx-go
+gx install
+go get
 ```
 
 ## Build and Test

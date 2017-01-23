@@ -5,9 +5,10 @@ import (
 	"testing"
 )
 
-var testUser = User{
-	Alias: "longh",
-	Key:   "test",
+var testUser = &User{
+	Alias:   "longh",
+	PubKey:  "PubKey test",
+	PrivKey: "PrivKey test",
 }
 
 func TestNewPostThenGetPost(t *testing.T) {
