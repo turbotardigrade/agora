@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"gx/ipfs/QmdXimY9QHaasZmw6hWojWnCJvfgxETjZQfg9g6ZrA9wMX/go-libp2p-net"
+	"io"
 	"os"
 	"path"
 )
@@ -19,6 +21,12 @@ func ReadJSON(stream net.Stream, ptr interface{}) {
 func WriteJSON(stream net.Stream, obj interface{}) {
 	res, _ := json.Marshal(&obj)
 	stream.Write(res)
+}
+
+// ToJSONReader convert a struct to io.Reader
+func ToJSONReader(obj interface{}) io.Reader {
+	byteData, _ := json.Marshal(obj)
+	return bytes.NewReader(byteData)
 }
 
 // Exists check if path exists
