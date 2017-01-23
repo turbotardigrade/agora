@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 
 	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
 )
@@ -29,6 +30,29 @@ func WriteJSON(stream net.Stream, obj interface{}) {
 func ToJSONReader(obj interface{}) io.Reader {
 	byteData, _ := json.Marshal(obj)
 	return bytes.NewReader(byteData)
+}
+
+// ToJSONReader convert a struct to io.Reader
+func FromJSONReader(r io.Reader, ptr interface{}) error {
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(buf, ptr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func FillStruct(data map[string]interface{}, result interface{}) {
+	t := reflect.ValueOf(result).Elem()
+	for k, v := range data {
+		val := t.FieldByName(k)
+		val.Set(reflect.ValueOf(v))
+	}
 }
 
 // Exists check if path exists

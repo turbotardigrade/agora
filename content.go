@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/fatih/structs"
 	"github.com/ipfs/go-ipfs/core/coreunix"
+	"github.com/mitchellh/mapstructure"
 )
 
 /** @TODOs:
@@ -21,7 +25,7 @@ type IPFSObj struct {
 	// Key is the PublicKey of the signing user
 	Key string
 	// Data is an opaque field to dump the payload in
-	Data interface{}
+	Data map[string]interface{}
 	// Signature used to verify this object was indeed sent by
 	// user with Key
 	Signature string
@@ -54,7 +58,8 @@ type Comment struct {
 // NewIPFSObj is a generalized helper function to created signed
 // IPFSObj and add it to the IPFS network
 func NewIPFSObj(node *Node, key string, data interface{}) (*IPFSObj, error) {
-	obj := &IPFSObj{Key: key, Data: data}
+	obj := &IPFSObj{Key: key}
+	obj.Data = structs.New(data).Map()
 
 	// @TODO make cryptographic signature with given key and data
 	obj.Signature = "TODO"
@@ -71,7 +76,7 @@ func NewIPFSObj(node *Node, key string, data interface{}) (*IPFSObj, error) {
 
 // Verify checks if the data of IPFSObj is valid by checking the
 // signature with provided PublicKey of the author
-func Verify(obj IPFSObj) (bool, error) {
+func Verify(obj *IPFSObj) (bool, error) {
 	// @TODO
 	return true, nil
 }
@@ -113,6 +118,53 @@ func NewComment(user User, postID, content string, ancestors []string) (*IPFSObj
 	}
 
 	return obj, nil
+}
+
+func GetIPFSObj(hash string) (*IPFSObj, error) {
+	ctx := context.Background() // Not sure what this should be used for
+	r, err := coreunix.Cat(ctx, MyNode.IpfsNode, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	obj := IPFSObj{}
+	err = FromJSONReader(r, &obj)
+
+	// @TODO verify
+	ok, err := Verify(&obj)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, errors.New("This got rigged")
+	}
+
+	return &obj, nil
+}
+
+func GetPost(postID string) (*Post, error) {
+	obj, err := GetIPFSObj(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	post := &Post{}
+	mapstructure.Decode(obj.Data, post)
+
+	return post, nil
+}
+
+func GetComment(commentID string) (*Comment, error) {
+	obj, err := GetIPFSObj(commentID)
+	if err != nil {
+		return nil, err
+	}
+
+	comment := &Comment{}
+	mapstructure.Decode(obj.Data, comment)
+
+	return comment, nil
 }
 
 // @TODO for now just return the hash of the string but later should return []Comments
