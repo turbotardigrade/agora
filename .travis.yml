@@ -6,19 +6,22 @@ go:
 install:
   - go get -u github.com/whyrusleeping/gx
   - go get -u github.com/whyrusleeping/gx-go
-  - go get -u -d github.com/ipfs/go-ipfs 2> /dev/null
+  - go get -u -d github.com/ipfs/go-ipfs
   - cd $GOPATH/src/github.com/ipfs/go-ipfs
-  - gx install
-  - go install ./cmd/ipfs
   - make install
   - cd $TRAVIS_BUILD_DIR
+  - gx install
   - go get
 
 before_script:
   - go get -u github.com/golang/lint/golint
+  - go get github.com/GeertJohan/fgt
 
 script:
   - golint
-
+  - go test
+    
 git:
   depth: 1 # speed up git clone
+
+sudo: required
