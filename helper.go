@@ -32,7 +32,7 @@ func ToJSONReader(obj interface{}) io.Reader {
 	return bytes.NewReader(byteData)
 }
 
-// ToJSONReader convert a struct to io.Reader
+// FromJSONReader convert a struct to io.Reader
 func FromJSONReader(r io.Reader, ptr interface{}) error {
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -47,6 +47,7 @@ func FromJSONReader(r io.Reader, ptr interface{}) error {
 	return nil
 }
 
+// FillStruct fills a struct with the given data
 func FillStruct(data map[string]interface{}, result interface{}) {
 	t := reflect.ValueOf(result).Elem()
 	for k, v := range data {
