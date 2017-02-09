@@ -12,6 +12,12 @@ type Command struct {
 	Arguments map[string]interface{}
 }
 
+var cmd2func = map[string]func(args map[string]interface{}){
+	"postPost":    postPost,
+	"postComment": postComment,
+	"postContent": postContent,
+}
+
 func StartGUIPipe() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -23,16 +29,23 @@ func StartGUIPipe() {
 			continue
 		}
 
-		switch cmd.Command {
-		case "postContent":
-			postContent(cmd.Arguments)
-		default:
+		handler, ok := cmd2func[cmd.Command]
+		if !ok {
 			fmt.Println("{\"error\": \"No such command.\"}")
+		} else {
+			handler(cmd.Arguments)
 		}
-
 	}
 }
 
+func postPost(args map[string]interface{}) {
+	fmt.Println("{\"res\": \"ok Post\"}")
+}
+
+func postComment(args map[string]interface{}) {
+	fmt.Println("{\"res\": \"ok Comment\"}")
+}
+
 func postContent(args map[string]interface{}) {
-	fmt.Println("{\"res\": \"ok la\"}")
+	fmt.Println("{\"res\": \"ok Test\"}")
 }
