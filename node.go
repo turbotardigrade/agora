@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"reflect"
 
@@ -104,7 +103,7 @@ func (n *Node) Request(targetPeer string, path string, body interface{}, resp in
 	// pointer instead of the struct as body, note that the
 	// warning will not stop the transaction
 	if reflect.ValueOf(resp).Kind() != reflect.Ptr {
-		fmt.Println("WARNING: You must pass resp by &reference and not by value. This is not done for a request to", targetPeer, path)
+		Warning.Println("You must pass resp by &reference and not by value. This is not done for a request to", targetPeer, path)
 	}
 
 	// Exchange request and response

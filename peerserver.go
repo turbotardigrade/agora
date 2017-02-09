@@ -27,7 +27,7 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 		return err
 	}
 
-	fmt.Printf("I am peer: %s and listening at %s \n", p.Identity.Pretty(), endpoint)
+	Info.Printf("I am peer: %s and listening at %s \n", p.Identity.Pretty(), endpoint)
 
 	// listen asynchronously
 	go func() {
