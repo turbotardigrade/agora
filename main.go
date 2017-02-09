@@ -1,5 +1,10 @@
 package main
 
+func init() {
+	OpenDb()
+	//defer CloseDb()
+}
+
 func main() {
 
 	// Starts PeerServer (non-blocking)

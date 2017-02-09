@@ -55,7 +55,7 @@ func init() {
 
 func TestGetComments(t *testing.T) {
 	// TODO this is just for the time being
-	KnownNodes = []string{testNode.Identity.Pretty()}
+	// knownNodes = []string{testNode.Identity.Pretty()}
 	fmt.Println(GetComments("1"))
 }
 
