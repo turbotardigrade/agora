@@ -23,10 +23,10 @@ func checkAndSetUlimit() error {
 	var setting bool
 	if rLimit.Cur < ipfsFileDescNum {
 		if rLimit.Max < ipfsFileDescNum {
-			fmt.Println("Error: adjusting max")
+			Error.Println("Error: adjusting max")
 			rLimit.Max = ipfsFileDescNum
 		}
-		fmt.Printf("Adjusting current ulimit to %d...\n", ipfsFileDescNum)
+		Info.Println("Adjusting current ulimit to ", ipfsFileDescNum, "...")
 		rLimit.Cur = ipfsFileDescNum
 		setting = true
 	}
@@ -37,7 +37,7 @@ func checkAndSetUlimit() error {
 	}
 
 	if setting {
-		fmt.Printf("Successfully raised file descriptor limit to %d.\n", ipfsFileDescNum)
+		Info.Println("Successfully raised file descriptor limit to", ipfsFileDescNum)
 	}
 
 	return nil

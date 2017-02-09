@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -113,7 +112,7 @@ func GetComments(postID string) ([]string, error) {
 	for _, target := range hosts {
 		comments, err := client.GetComments(target, "1")
 		if err != nil { // @TODO handle errors
-			fmt.Println(err)
+			Error.Println(err)
 			continue
 		}
 
