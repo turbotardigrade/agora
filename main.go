@@ -1,11 +1,8 @@
 package main
 
-func init() {
-	OpenDb()
-	//defer CloseDb()
-}
-
 func main() {
+	OpenDb()
+	defer CloseDb()
 
 	// Starts PeerServer (non-blocking)
 	StartPeerAPI(MyNode)

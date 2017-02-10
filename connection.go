@@ -44,7 +44,7 @@ func AddNodeHostingPost(postID string, nodeID string) error {
 			knownNodes = []string{nodeID}
 		}
 		data, _ := json.Marshal(knownNodes)
-		err := bucket.Put([]byte("knownNodes"), data)
+		err := bucket.Put([]byte(postID), data)
 		return err
 	})
 	if err != nil {
