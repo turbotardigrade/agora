@@ -104,7 +104,7 @@ func OpenDb() error {
 	_, filename, _, _ := runtime.Caller(0) // get full path of this file
 	dbfile := path.Join(path.Dir(filename), "data/data.db")
 	config := &bolt.Options{Timeout: 1 * time.Second}
-	db, err = bolt.Open(dbfile, 0600, config)
+	db, err = bolt.Open(dbfile, 0644, config)
 	if err != nil {
 		log.Fatal(err)
 	}

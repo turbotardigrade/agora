@@ -19,9 +19,10 @@ func init() {
 	fmt.Println("------------------------------------------------------------")
 
 	// Remove existing database if it exists
-	_ := os.Remove("data/data.db")
+	os.Remove("data/data.db")
+
 	// Open connection to database
-	OpenDB()
+	OpenDb()
 
 	// Create testNode
 	if !Exists(testNodePath) {
@@ -60,20 +61,21 @@ func init() {
 }
 
 func TestGetComments(t *testing.T) {
+	fmt.Println("\nTry GetComments")
 	postID, nodeID := "123", "456"
 
 	err := AddNodeHostingPost(postID, nodeID)
-
 	if err != nil {
 		panic(err)
 	}
 
 	knownNodes, err := GetNodesHostingPost(postID)
-
-	fmt.Println(knownNodes)
-
 	if err != nil {
 		panic(err)
+	}
+
+	if knownNodes[0] != "456" {
+		t.Errorf(`Expected node ID is 456`)
 	}
 }
 
