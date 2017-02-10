@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -16,6 +17,11 @@ func init() {
 	fmt.Println("------------------------------------------------------------")
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
+
+	// Remove existing database if it exists
+	_ := os.Remove("data/data.db")
+	// Open connection to database
+	OpenDB()
 
 	// Create testNode
 	if !Exists(testNodePath) {
@@ -54,9 +60,21 @@ func init() {
 }
 
 func TestGetComments(t *testing.T) {
-	// TODO this is just for the time being
-	// knownNodes = []string{testNode.Identity.Pretty()}
-	fmt.Println(GetComments("1"))
+	postID, nodeID := "123", "456"
+
+	err := AddNodeHostingPost(postID, nodeID)
+
+	if err != nil {
+		panic(err)
+	}
+
+	knownNodes, err := GetNodesHostingPost(postID)
+
+	fmt.Println(knownNodes)
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 func TestCommentsAPI(t *testing.T) {
