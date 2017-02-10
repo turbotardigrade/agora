@@ -9,13 +9,12 @@ import (
 	"log"
 	"os"
 	"path"
-	"reflect"
 	"runtime"
 	"time"
 
-	"github.com/boltdb/bolt"
-
 	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
+
+	"github.com/boltdb/bolt"
 )
 
 var db *bolt.DB
@@ -53,15 +52,6 @@ func FromJSONReader(r io.Reader, ptr interface{}) error {
 	}
 
 	return nil
-}
-
-// FillStruct fills a struct with the given data
-func FillStruct(data map[string]interface{}, result interface{}) {
-	t := reflect.ValueOf(result).Elem()
-	for k, v := range data {
-		val := t.FieldByName(k)
-		val.Set(reflect.ValueOf(v))
-	}
 }
 
 // Exists check if path exists
