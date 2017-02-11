@@ -6,19 +6,16 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
-	"runtime"
-	"time"
 
 	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
-
-	"github.com/boltdb/bolt"
 )
 
-var db *bolt.DB
-var dbOpened bool
+// B converts string to byte, just a helper for less typing...
+func B(obj string) []byte {
+	return []byte(obj)
+}
 
 // ReadJSON reads stream content in JSON format into provided the
 // struct variable. Important: Struct variable must be provided as a
@@ -95,35 +92,4 @@ func CheckWriteable(dir string) error {
 	}
 
 	return err
-}
-
-// OpenDb opens bolt database
-func OpenDb() error {
-	Info.Println("Init DB")
-
-	var err error
-	_, filename, _, _ := runtime.Caller(0) // get full path of this file
-	dbfile := path.Join(path.Dir(filename), "data/data.db")
-	config := &bolt.Options{Timeout: 1 * time.Second}
-	db, err = bolt.Open(dbfile, 0644, config)
-	if err != nil {
-		log.Fatal(err)
-	}
-	dbOpened = true
-
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("knownNodes"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-
-	return nil
-}
-
-// CloseDb closes bolt database
-func CloseDb() {
-	dbOpened = false
-	db.Close()
 }
