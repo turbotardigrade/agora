@@ -34,7 +34,7 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 		for {
 			stream, err := list.Accept()
 			if err != nil {
-				fmt.Println(err)
+				Error.Println(err)
 				continue
 			}
 

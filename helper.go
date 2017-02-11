@@ -99,7 +99,8 @@ func CheckWriteable(dir string) error {
 
 // OpenDb opens bolt database
 func OpenDb() error {
-	fmt.Println("Init DB ----------------------------------------------------")
+	Info.Println("Init DB")
+
 	var err error
 	_, filename, _, _ := runtime.Caller(0) // get full path of this file
 	dbfile := path.Join(path.Dir(filename), "data/data.db")
