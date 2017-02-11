@@ -65,6 +65,7 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 		return nil, errors.New("This got rigged")
 	}
 
+	obj.Hash = hash
 	return &obj, nil
 }
 

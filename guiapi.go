@@ -116,11 +116,6 @@ func postComment(args map[string]interface{}) {
 	pArgs := postCommentArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	if pArgs.Parent == "" || pArgs.Post == "" {
-		fmt.Println(`{"error": "Parent and/or Post not defined"}`)
-		return
-	}
-
 	obj, err := NewComment(MyUser, pArgs.Post, pArgs.Parent, pArgs.Content)
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
@@ -128,7 +123,6 @@ func postComment(args map[string]interface{}) {
 	}
 
 	fmt.Println(`{"hash": "` + obj.Hash + `"}`)
-
 }
 
 func postContent(args map[string]interface{}) {

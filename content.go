@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -12,6 +13,15 @@ import (
 - Limit content size to e.g. 1kb
 */
 
+// IPFSData is be embedded to Post and Comment and only filled when
+// loaded from IPFS. It extends Post and Comment with information like
+// hash, which is not known beforehand. Do not mistake with IPFSObj,
+// which is the general abstraction for blobs in IPFS.
+type IPFSData struct {
+	Hash string
+	Key  string
+}
+
 // Post defines the data structure used by our application to handle
 // posts and also provides the model for database
 type Post struct {
@@ -19,6 +29,8 @@ type Post struct {
 	Alias     string
 	Content   string
 	Timestamp int64
+
+	IPFSData
 }
 
 // Comment defines the data structure used by our application to
@@ -34,6 +46,8 @@ type Comment struct {
 	Alias     string
 	Content   string
 	Timestamp int64
+
+	IPFSData
 }
 
 // NewPost constructs a new posts and adds it to the IPFS network
@@ -55,7 +69,14 @@ func NewPost(user *User, content string) (*IPFSObj, error) {
 // NewComment constructs a new comment and adds it to the IPFS
 // network. Note that parent == post for comments replying to posts
 func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
-	// @TODO check if postID and parent are valid
+	if parent == "" || postID == "" {
+		// @TODO check if postID and parent are valid
+		return nil, errors.New("Parent and/or Post not defined")
+	}
+
+	if content == "" {
+		return nil, errors.New("Content cannot be empty")
+	}
 
 	data := Comment{
 		Post:      postID,
@@ -82,6 +103,9 @@ func GetPost(postID string) (*Post, error) {
 	post := &Post{}
 	mapstructure.Decode(obj.Data, post)
 
+	post.Hash = obj.Hash
+	post.Key = obj.Key
+
 	return post, nil
 }
 
@@ -93,6 +117,9 @@ func GetComment(commentID string) (*Comment, error) {
 
 	comment := &Comment{}
 	mapstructure.Decode(obj.Data, comment)
+
+	comment.Hash = obj.Hash
+	comment.Key = obj.Key
 
 	return comment, nil
 }
