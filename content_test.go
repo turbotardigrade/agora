@@ -35,8 +35,7 @@ func TestNewComment(t *testing.T) {
 	fmt.Println("Create new Comment:")
 
 	postID := "Test Post Hash"
-	ancestors := []string{"Test Ancestor Hash 1", "Test Ancestor Hash 2"}
-	obj, err := NewComment(testUser, postID, "Hello World", ancestors)
+	obj, err := NewComment(testUser, postID, postID, "Hello World")
 	if err != nil {
 		panic(err)
 	}

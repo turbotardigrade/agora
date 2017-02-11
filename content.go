@@ -26,9 +26,9 @@ type Post struct {
 type Comment struct {
 	// Post refers to the posts this comment is submitted to
 	Post string
-	// Ancestors is the list of hashes of upper level comments,
-	// which this comment replies to
-	Ancestors []string
+	// Parent refers to the item (can be post or comment) to which
+	// this comment is replying to
+	Parent string
 
 	// Alias is authors display name
 	Alias     string
@@ -53,15 +53,13 @@ func NewPost(user *User, content string) (*IPFSObj, error) {
 }
 
 // NewComment constructs a new comment and adds it to the IPFS
-// network. Note that a valid hash of the post this comment is
-// submitted to needs to be provided. If this comment is a reply to
-// any other comment, include the parent comments in ancestors.
-func NewComment(user *User, postID, content string, ancestors []string) (*IPFSObj, error) {
+// network. Note that parent == post for comments replying to posts
+func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	// @TODO check if postID and parent are valid
 
 	data := Comment{
 		Post:      postID,
-		Ancestors: ancestors,
+		Parent:    parent,
 		Alias:     user.Alias,
 		Content:   content,
 		Timestamp: time.Now().Unix(),

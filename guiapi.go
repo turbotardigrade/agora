@@ -15,10 +15,11 @@ type Command struct {
 }
 
 var cmd2func = map[string]func(args map[string]interface{}){
-	"getPost":     getPost,
-	"postPost":    postPost,
-	"postComment": postComment,
-	"postContent": postContent,
+	"getPost":             getPost,
+	"postPost":            postPost,
+	"getCommentsFromPost": getCommentsFromPost,
+	"postComment":         postComment,
+	"postContent":         postContent,
 }
 
 func StartGUIPipe() {
@@ -54,8 +55,6 @@ func getPost(args map[string]interface{}) {
 		return
 	}
 
-	// @TODO get entire comment tree as well?
-
 	res, _ := json.Marshal(post)
 	fmt.Println(string(res))
 }
@@ -76,17 +75,53 @@ func postPost(args map[string]interface{}) {
 	fmt.Println(`{"hash": "` + obj.Hash + `"}`)
 }
 
+func getCommentsFromPost(args map[string]interface{}) {
+	hash, ok := args["hash"].(string)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	comments, err := GetComments(hash)
+	if err != nil {
+		fmt.Println(`{"error": "`, err, `"}`)
+		return
+	}
+
+	// @DANGER can easily break at this place
+	// @TODO do concurrently
+
+	var res []Comment
+	for _, c := range comments {
+		comment, err := GetComment(c)
+		if err != nil {
+			fmt.Println(`{"error": "`, err, `"}`)
+			return
+		}
+
+		res = append(res, *comment)
+	}
+
+	js, _ := json.Marshal(res)
+	fmt.Println(string(js))
+}
+
 type postCommentArgs struct {
-	Post      string
-	Content   string
-	Ancestors []string
+	Post    string
+	Content string
+	Parent  string
 }
 
 func postComment(args map[string]interface{}) {
 	pArgs := postCommentArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	obj, err := NewComment(MyUser, pArgs.Post, pArgs.Content, pArgs.Ancestors)
+	if pArgs.Parent == "" || pArgs.Post == "" {
+		fmt.Println(`{"error": "Parent and/or Post not defined"}`)
+		return
+	}
+
+	obj, err := NewComment(MyUser, pArgs.Post, pArgs.Parent, pArgs.Content)
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
 		return
