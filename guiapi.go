@@ -88,21 +88,7 @@ func getCommentsFromPost(args map[string]interface{}) {
 		return
 	}
 
-	// @DANGER can easily break at this place
-	// @TODO do concurrently
-
-	var res []Comment
-	for _, c := range comments {
-		comment, err := GetComment(c)
-		if err != nil {
-			fmt.Println(`{"error": "`, err, `"}`)
-			return
-		}
-
-		res = append(res, *comment)
-	}
-
-	js, _ := json.Marshal(res)
+	js, _ := json.Marshal(comments)
 	fmt.Println(string(js))
 }
 

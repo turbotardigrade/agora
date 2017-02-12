@@ -38,9 +38,16 @@ func BoltGetList(bucketName, key string) ([]string, error) {
 	err := db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(B(bucketName))
 		data := bucket.Get(B(key))
+
+		if len(data) == 0 {
+			// results in empty list
+			return nil
+		}
+
 		if err := json.Unmarshal(data, &list); err != nil {
 			return err
 		}
+
 		return nil
 	})
 

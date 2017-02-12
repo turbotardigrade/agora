@@ -63,6 +63,11 @@ func NewPost(user *User, content string) (*IPFSObj, error) {
 		return nil, err
 	}
 
+	err = AddHostingNode(obj.Hash, MyNode.Identity.Pretty())
+	if err != nil {
+		return nil, err
+	}
+
 	return obj, nil
 }
 
@@ -87,6 +92,11 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	}
 
 	obj, err := NewIPFSObj(MyNode, user, data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = AssociateCommentWithPost(obj.Hash, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,26 +135,24 @@ func GetComment(commentID string) (*Comment, error) {
 }
 
 // @TODO for now just return the hash of the string but later should return []Comments
-func GetComments(postID string) ([]string, error) {
-	hosts, err := GetNodesHostingPost(postID)
+func GetComments(postID string) ([]Comment, error) {
+	commentHashes, err := GetPostComments(postID)
 	if err != nil {
 		return nil, err
 	}
 
-	client := Client{MyNode}
-	result := []string{}
+	// @TODO add comments from other nodes as well
 
-	for _, target := range hosts {
-		comments, err := client.GetComments(target, "1")
-		if err != nil { // @TODO handle errors
-			Error.Println(err)
+	var comments []Comment
+	for _, h := range commentHashes {
+		comment, err := GetComment(h)
+		if err != nil {
+			Warning.Println("Could not retrieve comment with id", h)
 			continue
 		}
 
-		// @TODO Add comment hash to database if not added yet
-		result = append(result, comments...)
+		comments = append(comments, *comment)
 	}
 
-	// @TODO retrieve comments from IPFS
-	return result, nil
+	return comments, nil
 }
