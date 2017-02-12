@@ -12,10 +12,9 @@ import (
 )
 
 var db *bolt.DB
+var dbPath = "data/data.db"
 
 const (
-	dbPath = "data/data.db"
-
 	postCommentsBucket = "posts2comment"
 	postHostersBucket  = "post2hoster"
 )

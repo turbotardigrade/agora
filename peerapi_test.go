@@ -18,8 +18,11 @@ func init() {
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
 
+	// Use another boltdb instance for testing
+	dbPath = "data/testdata.db"
+
 	// Remove existing database if it exists
-	os.Remove("data/data.db")
+	os.Remove(dbPath)
 
 	// Open connection to database
 	OpenDb()
