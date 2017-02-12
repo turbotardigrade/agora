@@ -14,7 +14,8 @@ import (
 var db *bolt.DB
 
 const (
-	dbPath             = "data/data.db"
+	dbPath = "data/data.db"
+
 	postCommentsBucket = "posts2comment"
 	postHostersBucket  = "post2hoster"
 )
@@ -31,48 +32,6 @@ func GetHostingNodes(postID string) (nodes []string, err error) {
 
 func GetPostComments(postID string) (nodes []string, err error) {
 	return BoltGetList(postCommentsBucket, postID)
-}
-
-func BoltGetList(bucketName, key string) ([]string, error) {
-	var list []string
-	err := db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(B(bucketName))
-		data := bucket.Get(B(key))
-
-		if len(data) == 0 {
-			// results in empty list
-			return nil
-		}
-
-		if err := json.Unmarshal(data, &list); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return list, err
-}
-
-func BoltAppendList(bucketName, key, elem string) error {
-	return db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(B(bucketName))
-
-		// If the postID already has an entry, unmarshal and append the nodeID to it
-		// else create a new array containing the nodeID
-		var list []string
-		if data := bucket.Get(B(key)); data != nil {
-			if err := json.Unmarshal(data, &list); err != nil {
-				return err
-			}
-			list = append(list, elem)
-		} else {
-			list = []string{elem}
-		}
-
-		data, _ := json.Marshal(list)
-		return bucket.Put(B(key), data)
-	})
 }
 
 func AddHostingNode(postID, nodeID string) error {
@@ -112,4 +71,52 @@ func OpenDb() error {
 // CloseDb closes bolt database
 func CloseDb() {
 	db.Close()
+}
+
+//////////////////////////////////////////////////////////////////////
+// Helper functions to deal with boltdb
+
+// BoltGetList will get a specific list of string (as array) from a
+// boltdb bucket
+func BoltGetList(bucketName, key string) ([]string, error) {
+	var list []string
+	err := db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(bucketName))
+		data := bucket.Get(B(key))
+
+		if len(data) == 0 {
+			// results in empty list
+			return nil
+		}
+
+		if err := json.Unmarshal(data, &list); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return list, err
+}
+
+// BoltAppendList appends a string to a list
+func BoltAppendList(bucketName, key, elem string) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(bucketName))
+
+		// If already has an entry, unmarshal and append to it,
+		// else create a new array containing the element
+		var list []string
+		if data := bucket.Get(B(key)); data != nil {
+			if err := json.Unmarshal(data, &list); err != nil {
+				return err
+			}
+			list = append(list, elem)
+		} else {
+			list = []string{elem}
+		}
+
+		data, _ := json.Marshal(list)
+		return bucket.Put(B(key), data)
+	})
 }

@@ -134,7 +134,6 @@ func GetComment(commentID string) (*Comment, error) {
 	return comment, nil
 }
 
-// @TODO for now just return the hash of the string but later should return []Comments
 func GetComments(postID string) ([]Comment, error) {
 	commentHashes, err := GetPostComments(postID)
 	if err != nil {
@@ -143,6 +142,7 @@ func GetComments(postID string) ([]Comment, error) {
 
 	// @TODO add comments from other nodes as well
 
+	// @TODO @PERFORMANCE can do this concurrently
 	var comments []Comment
 	for _, h := range commentHashes {
 		comment, err := GetComment(h)

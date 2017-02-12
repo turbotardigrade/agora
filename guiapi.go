@@ -9,11 +9,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// Command defines the general structure how the GUI sends commands to the PeerBackend
+// In JSON it looks like this:
+// { "command": "someCommand", "arguments": {...} }
 type Command struct {
 	Command   string
 	Arguments map[string]interface{}
 }
 
+// cmd2func maps the command with its respective handler function
 var cmd2func = map[string]func(args map[string]interface{}){
 	"getPost":             getPost,
 	"postPost":            postPost,
@@ -22,6 +26,9 @@ var cmd2func = map[string]func(args map[string]interface{}){
 	"postContent":         postContent,
 }
 
+// STartGUIPipe is a blocking loop providing a pipe for the GUI to
+// interact with the PeerBackend. Use EOF (CTRL+D) to gracefully close
+// the pipe
 func StartGUIPipe() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -41,6 +48,9 @@ func StartGUIPipe() {
 		}
 	}
 }
+
+//////////////////////////////////////////////////////////////////////
+// handler functions
 
 func getPost(args map[string]interface{}) {
 	hash, ok := args["hash"].(string)
