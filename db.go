@@ -4,15 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"path"
-	"runtime"
 	"time"
 
 	"github.com/boltdb/bolt"
 )
 
 var db *bolt.DB
-var dbPath = "data/data.db"
+var dbPath = "./data/data.db"
 
 const (
 	postCommentsBucket = "posts2comment"
@@ -27,6 +25,32 @@ var bucketNames = []string{
 	postHostersBucket,
 	postBucket,
 	commentBucket,
+}
+
+// @TODO this function looks awful, should be somehow refactored
+func GetPosts() ([]string, error) {
+	pMap := make(map[string]struct{})
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(postHostersBucket))
+		b.ForEach(func(k, _ []byte) error {
+			pMap[string(k)] = struct{}{}
+			return nil
+		})
+		return nil
+	})
+	if err != nil {
+		return []string{}, err
+	}
+
+	posts := make([]string, len(pMap))
+	i := 0
+	for k, _ := range pMap {
+		posts[i] = k
+		i++
+	}
+
+	return posts, nil
 }
 
 func GetHostingNodes(postID string) (nodes []string, err error) {
@@ -77,13 +101,12 @@ func SetCommentUserData(hash string, data CommentUserData) error {
 func OpenDb() error {
 	Info.Println("Init DB")
 
-	_, filename, _, _ := runtime.Caller(0) // get full path of this file
-	dbfile := path.Join(path.Dir(filename), dbPath)
-	config := &bolt.Options{Timeout: 1 * time.Second}
+	config := &bolt.Options{Timeout: 2 * time.Second}
 
 	var err error
-	db, err = bolt.Open(dbfile, 0644, config)
+	db, err = bolt.Open(dbPath, 0600, config)
 	if err != nil {
+		Error.Println("FATAL", err)
 		log.Fatal(err)
 	}
 

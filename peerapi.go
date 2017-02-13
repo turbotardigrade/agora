@@ -7,6 +7,7 @@ import "gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
 func StartPeerAPI(node *Node) {
 	peerAPI := NewPeerServer(node)
 	peerAPI.HandleFunc("/comments", GetCommentsHandler)
+	peerAPI.HandleFunc("/posts", GetPostsHandler)
 	peerAPI.HandleFunc("/health", GetHealthHandler)
 }
 
@@ -56,6 +57,39 @@ func (c Client) GetComments(target, postID string) ([]string, error) {
 	}
 
 	return resp.Comments, nil
+}
+
+// ----------------------------------------
+// /posts API - temporary
+
+// GetPostsResp defines response
+type GetPostsResp struct {
+	Posts []string
+}
+
+// GetPostsHandler provides stream handler
+func GetPostsHandler(stream net.Stream) {
+	posts, err := GetPosts()
+	if err != nil {
+		Warning.Println("Error retrieving list of posts: ", err)
+		return
+	}
+
+	resp := GetPostsResp{posts}
+
+	WriteJSON(stream, resp)
+}
+
+// GetPosts provides helper function for the client to query the
+// Comments API
+func (c Client) GetPosts(target string) ([]string, error) {
+	var resp GetPostsResp
+	err := c.Node.Request(target, "/posts", nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Posts, nil
 }
 
 // ----------------------------------------
