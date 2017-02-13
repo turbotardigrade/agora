@@ -20,6 +20,7 @@ type Command struct {
 // cmd2func maps the command with its respective handler function
 var cmd2func = map[string]func(args map[string]interface{}){
 	"getPost":             getPost,
+	"getPosts":            getPosts,
 	"postPost":            postPost,
 	"getCommentsFromPost": getCommentsFromPost,
 	"postComment":         postComment,
@@ -85,6 +86,17 @@ func postPost(args map[string]interface{}) {
 	}
 
 	fmt.Println(`{"hash": "` + obj.Hash + `"}`)
+}
+
+func getPosts(args map[string]interface{}) {
+	posts, err := GetAllPosts()
+	if err != nil {
+		fmt.Println(`{"error": "`, err, `"}`)
+		return
+	}
+
+	js, _ := json.Marshal(posts)
+	fmt.Println(string(js))
 }
 
 func getCommentsFromPost(args map[string]interface{}) {

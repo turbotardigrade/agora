@@ -149,8 +149,6 @@ func GetComments(postID string) ([]Comment, error) {
 		return nil, err
 	}
 
-	// @TODO add comments from other nodes as well
-
 	// @TODO @PERFORMANCE can do this concurrently
 	var comments []Comment
 	for _, h := range commentHashes {
@@ -164,4 +162,26 @@ func GetComments(postID string) ([]Comment, error) {
 	}
 
 	return comments, nil
+}
+
+func GetAllPosts() ([]Post, error) {
+	postHashes, err := GetPosts()
+	if err != nil {
+		return nil, err
+	}
+
+	// @TODO @PERFORMANCE can do this concurrently
+	var posts []Post
+	for _, h := range postHashes {
+		post, err := GetPost(h)
+		if err != nil {
+			Warning.Println("Could not retrieve post with id", h)
+			continue
+		}
+
+		posts = append(posts, *post)
+	}
+
+	return posts, nil
+
 }
