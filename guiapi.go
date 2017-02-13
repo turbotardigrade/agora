@@ -97,7 +97,13 @@ func postPost(args map[string]interface{}) {
 		return
 	}
 
-	obj, err := NewPost(MyUser, content)
+	title, ok := args["title"].(string)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	obj, err := NewPost(MyUser, title, content)
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
 		return

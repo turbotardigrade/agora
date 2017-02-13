@@ -27,6 +27,7 @@ type IPFSData struct {
 type Post struct {
 	// Alias is authors display name
 	Alias     string
+	Title     string
 	Content   string
 	Timestamp int64
 
@@ -54,9 +55,10 @@ type Comment struct {
 }
 
 // NewPost constructs a new posts and adds it to the IPFS network
-func NewPost(user *User, content string) (*IPFSObj, error) {
+func NewPost(user *User, title, content string) (*IPFSObj, error) {
 	data := Post{
 		Alias:     user.Alias,
+		Title:     title,
 		Content:   content,
 		Timestamp: time.Now().Unix(),
 	}
