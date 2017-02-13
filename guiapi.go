@@ -24,6 +24,8 @@ var cmd2func = map[string]func(args map[string]interface{}){
 	"getCommentsFromPost": getCommentsFromPost,
 	"postComment":         postComment,
 	"postContent":         postContent,
+	"setPostUserData":     setPostUserData,
+	"setCommentUserData":  setCommentUserData,
 }
 
 // STartGUIPipe is a blocking loop providing a pipe for the GUI to
@@ -119,6 +121,42 @@ func postComment(args map[string]interface{}) {
 	}
 
 	fmt.Println(`{"hash": "` + obj.Hash + `"}`)
+}
+
+type setPostUserDataArgs struct {
+	Hash     string
+	UserData PostUserData
+}
+
+func setPostUserData(args map[string]interface{}) {
+	pArgs := setPostUserDataArgs{}
+	mapstructure.Decode(args, &pArgs)
+
+	err := SetPostUserData(pArgs.Hash, pArgs.UserData)
+	if err != nil {
+		fmt.Println(`{"error": "`, err, `"}`)
+		return
+	}
+
+	fmt.Println(`{"status": "success"}`)
+}
+
+type setCommentUserDataArgs struct {
+	Hash     string
+	UserData CommentUserData
+}
+
+func setCommentUserData(args map[string]interface{}) {
+	pArgs := setCommentUserDataArgs{}
+	mapstructure.Decode(args, &pArgs)
+
+	err := SetCommentUserData(pArgs.Hash, pArgs.UserData)
+	if err != nil {
+		fmt.Println(`{"error": "`, err, `"}`)
+		return
+	}
+
+	fmt.Println(`{"status": "success"}`)
 }
 
 func postContent(args map[string]interface{}) {

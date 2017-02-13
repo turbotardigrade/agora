@@ -30,7 +30,9 @@ type Post struct {
 	Content   string
 	Timestamp int64
 
+	// @TODO these fields are still getting saved to IPFS
 	IPFSData
+	UserData PostUserData
 }
 
 // Comment defines the data structure used by our application to
@@ -48,6 +50,7 @@ type Comment struct {
 	Timestamp int64
 
 	IPFSData
+	UserData CommentUserData
 }
 
 // NewPost constructs a new posts and adds it to the IPFS network
@@ -116,6 +119,9 @@ func GetPost(postID string) (*Post, error) {
 	post.Hash = obj.Hash
 	post.Key = obj.Key
 
+	userData := GetPostUserData(postID)
+	post.UserData = userData
+
 	return post, nil
 }
 
@@ -130,6 +136,9 @@ func GetComment(commentID string) (*Comment, error) {
 
 	comment.Hash = obj.Hash
 	comment.Key = obj.Key
+
+	userData := GetCommentUserData(commentID)
+	comment.UserData = userData
 
 	return comment, nil
 }

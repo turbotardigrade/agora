@@ -17,12 +17,16 @@ var dbPath = "data/data.db"
 const (
 	postCommentsBucket = "posts2comment"
 	postHostersBucket  = "post2hoster"
+	postBucket         = "postBucket"
+	commentBucket      = "commentBucket"
 )
 
 // Used to iterate through all buckets e.g. on initialization
 var bucketNames = []string{
 	postCommentsBucket,
 	postHostersBucket,
+	postBucket,
+	commentBucket,
 }
 
 func GetHostingNodes(postID string) (nodes []string, err error) {
@@ -39,6 +43,34 @@ func AddHostingNode(postID, nodeID string) error {
 
 func AssociateCommentWithPost(comment, post string) error {
 	return BoltAppendList(postCommentsBucket, post, comment)
+}
+
+type PostUserData struct {
+	Score   int
+	Flagged bool
+}
+
+func GetPostUserData(hash string) (res PostUserData) {
+	BoltGet(postBucket, hash, &res)
+	return res
+}
+
+func SetPostUserData(hash string, data PostUserData) error {
+	return BoltSet(postBucket, hash, data)
+}
+
+type CommentUserData struct {
+	Score   int
+	Flagged bool
+}
+
+func GetCommentUserData(hash string) (res CommentUserData) {
+	BoltGet(postBucket, hash, &res)
+	return res
+}
+
+func SetCommentUserData(hash string, data CommentUserData) error {
+	return BoltSet(postBucket, hash, data)
 }
 
 // OpenDb opens bolt database
@@ -79,23 +111,34 @@ func CloseDb() {
 // boltdb bucket
 func BoltGetList(bucketName, key string) ([]string, error) {
 	var list []string
-	err := db.View(func(tx *bolt.Tx) error {
+	err := BoltGet(bucketName, key, &list)
+	return list, err
+}
+
+func BoltGet(bucketName, key string, ptr interface{}) error {
+	return db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(B(bucketName))
 		data := bucket.Get(B(key))
 
 		if len(data) == 0 {
-			// results in empty list
+			// results in no changes to ptr
 			return nil
 		}
 
-		if err := json.Unmarshal(data, &list); err != nil {
+		if err := json.Unmarshal(data, ptr); err != nil {
 			return err
 		}
 
 		return nil
 	})
+}
 
-	return list, err
+func BoltSet(bucketName, key string, obj interface{}) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(bucketName))
+		data, _ := json.Marshal(obj)
+		return bucket.Put(B(key), data)
+	})
 }
 
 // BoltAppendList appends a string to a list
