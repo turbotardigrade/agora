@@ -4,11 +4,8 @@
 package main
 
 import (
-	"flag"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
 )
 
 var (
@@ -17,17 +14,6 @@ var (
 	Warning *log.Logger
 	Error   *log.Logger
 )
-
-func init() {
-	silent := flag.Bool("silent", false, "Supresses all output except for stderr")
-	flag.Parse()
-
-	if *silent {
-		LoggerInit(ioutil.Discard, ioutil.Discard, ioutil.Discard, os.Stderr)
-	} else {
-		LoggerInit(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
-	}
-}
 
 func LoggerInit(
 	traceHandle io.Writer,
