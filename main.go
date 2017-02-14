@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -40,13 +39,41 @@ func main() {
 	}
 
 	if FlagPullPostsFrom != "" {
-		Info.Println("Request Posts from Peer", FlagPullPostsFrom)
-		posts, err := Client{MyNode}.GetPosts(FlagPullPostsFrom)
+		target := FlagPullPostsFrom
+		Info.Println("Request Posts from Peer", target)
+		postHashes, err := Client{MyNode}.GetPosts(target)
 		if err != nil {
 			Warning.Println(err)
 		} else {
-			fmt.Println(posts)
+			Info.Println("Received post Hashes:", postHashes)
 		}
+
+		for _, hash := range postHashes {
+			postObj, err := GetPost(hash)
+			if err != nil {
+				Warning.Println("PullPosts", err)
+				continue
+			} else {
+				AddHostingNode(postObj.Hash, target)
+			}
+
+			// Get Comments from node
+			commentHashes, err := Client{MyNode}.GetComments(target, postObj.Hash)
+
+			for _, hash := range commentHashes {
+				_, err := GetComments(hash)
+				if err != nil {
+					Warning.Println("PullPosts", err)
+					continue
+				} else {
+					AssociateCommentWithPost(hash, postObj.Hash)
+				}
+
+			}
+		}
+
+		Info.Println("Done pulling")
+
 	}
 
 	// Starts communication pipeline for GUI

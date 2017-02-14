@@ -142,6 +142,11 @@ func GetComment(commentID string) (*Comment, error) {
 	userData := GetCommentUserData(commentID)
 	comment.UserData = userData
 
+	err = AssociateCommentWithPost(obj.Hash, comment.Post)
+	if err != nil {
+		return nil, err
+	}
+
 	return comment, nil
 }
 

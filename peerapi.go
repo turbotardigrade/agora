@@ -40,7 +40,12 @@ func GetCommentsHandler(stream net.Stream) {
 	ReadJSON(stream, &req)
 
 	// @TODO lookup comments for given req.Post
-	comments := GetCommentsResp{[]string{"hash1", "hash2", req.Post}}
+	commentHashes, err := GetPostComments(req.Post)
+	if err != nil {
+		Warning.Println(err)
+	}
+
+	comments := GetCommentsResp{commentHashes}
 
 	WriteJSON(stream, comments)
 }
