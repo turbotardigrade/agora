@@ -59,3 +59,7 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 func AddNodeToBlacklist(identity string) error {
 	return BoltSet(blacklistBucket, identity, true)
 }
+
+func RemoveNodeFromBlacklist(identity string) error {
+	return BoltDelete(blacklistBucket, identity)
+}

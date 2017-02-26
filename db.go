@@ -166,6 +166,13 @@ func BoltSet(bucketName, key string, obj interface{}) error {
 	})
 }
 
+func BoltDelete(bucketName, key string) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(bucketName))
+		return bucket.Delete(B(key))
+	})
+}
+
 // BoltAppendList appends a string to a list
 func BoltAppendList(bucketName, key, elem string) error {
 	return db.Update(func(tx *bolt.Tx) error {
