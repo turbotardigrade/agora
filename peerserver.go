@@ -45,10 +45,10 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 
 			if blacklisted {
 				Info.Println("Node is blacklisted, connection will be aborted")
-				continue
+			} else {
+				handler(stream)
 			}
 
-			handler(stream)
 			stream.Close()
 		}
 	}()
