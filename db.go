@@ -17,6 +17,7 @@ const (
 	postHostersBucket  = "post2hoster"
 	postBucket         = "postBucket"
 	commentBucket      = "commentBucket"
+	blacklistBucket    = "blacklistBucket"
 )
 
 // Used to iterate through all buckets e.g. on initialization
@@ -25,6 +26,7 @@ var bucketNames = []string{
 	postHostersBucket,
 	postBucket,
 	commentBucket,
+	blacklistBucket,
 }
 
 // @TODO this function looks awful, should be somehow refactored

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
 
 	"github.com/ipfs/go-ipfs/core/corenet"
@@ -38,7 +37,16 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 				continue
 			}
 
-			fmt.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
+			Info.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
+
+			var blacklisted bool
+
+			BoltGet(blacklistBucket, p.Identity.Pretty(), blacklisted)
+
+			if blacklisted {
+				Info.Println("Node is blacklisted, connection will be aborted")
+				continue
+			}
 
 			handler(stream)
 			stream.Close()
@@ -46,4 +54,8 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 	}()
 
 	return nil
+}
+
+func AddNodeToBlacklist(identity string) error {
+	return BoltSet(blacklistBucket, identity, true)
 }
