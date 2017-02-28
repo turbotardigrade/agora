@@ -2,6 +2,7 @@ package main
 
 import (
 	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
+	"time"
 
 	"github.com/ipfs/go-ipfs/core/corenet"
 )
@@ -45,10 +46,11 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 
 			if blacklisted {
 				Info.Println("Node is blacklisted, connection will be aborted")
-				continue
+			} else {
+				BoltSet(knownNodesBucket, p.Identity.Pretty(), time.Now().UnixNano())
+				handler(stream)
 			}
 
-			handler(stream)
 			stream.Close()
 		}
 	}()
