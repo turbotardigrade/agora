@@ -14,7 +14,7 @@ var testUser = &User{
 func TestNewPostThenGetPost(t *testing.T) {
 	fmt.Println("\nTry NewPost and GetPost")
 	fmt.Println("Create new Post:")
-	obj, err := NewPost(testUser, "Hello World")
+	obj, err := NewPost(testUser, "Title", "Content")
 	if err != nil {
 		panic(err)
 	}
