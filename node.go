@@ -56,7 +56,10 @@ func NewNode(path string) (*Node, error) {
 
 	// Need to increse limit for number of filedescriptors to
 	// avoid running out of those due to a lot of sockets
-	checkAndSetUlimit()
+	err := checkAndSetUlimit()
+	if err != nil {
+		return nil, err
+	}
 
 	// Open and check node repository
 	r, err := fsrepo.Open(path)

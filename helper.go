@@ -93,3 +93,13 @@ func CheckWriteable(dir string) error {
 
 	return err
 }
+
+// StringInSlice check if a string is inside given string array
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}

@@ -20,24 +20,18 @@ func checkAndSetUlimit() error {
 		return fmt.Errorf("Error getting rlimit: %s", err)
 	}
 
-	var setting bool
 	if rLimit.Cur < ipfsFileDescNum {
 		if rLimit.Max < ipfsFileDescNum {
 			Error.Println("Error: adjusting max")
 			rLimit.Max = ipfsFileDescNum
 		}
-		Info.Println("Adjusting current ulimit to ", ipfsFileDescNum, "...")
+		// Info.Println("Adjusting current ulimit to ", ipfsFileDescNum, "...")
 		rLimit.Cur = ipfsFileDescNum
-		setting = true
 	}
 
 	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
 		return fmt.Errorf("Error setting ulimit: %s", err)
-	}
-
-	if setting {
-		Info.Println("Successfully raised file descriptor limit to", ipfsFileDescNum)
 	}
 
 	return nil
