@@ -33,6 +33,9 @@ func main() {
 	OpenDb()
 	defer CloseDb()
 
+	// Initialize Curation module
+	MyCurator.Init()
+
 	// Starts PeerServer (non-blocking)
 	if !FlagNoPeerServer {
 		StartPeerAPI(MyNode)
@@ -40,38 +43,7 @@ func main() {
 
 	if FlagPullPostsFrom != "" {
 		target := FlagPullPostsFrom
-		Info.Println("Request Posts from Peer", target)
-		postHashes, err := Client{MyNode}.GetPosts(target)
-		if err != nil {
-			Warning.Println(err)
-		} else {
-			Info.Println("Received post Hashes:", postHashes)
-		}
-
-		for _, hash := range postHashes {
-			postObj, err := GetPost(hash)
-			if err != nil {
-				Warning.Println("PullPosts", err)
-				continue
-			} else {
-				AddHostingNode(postObj.Hash, target)
-			}
-
-			// Get Comments from node
-			commentHashes, err := Client{MyNode}.GetComments(target, postObj.Hash)
-
-			for _, hash := range commentHashes {
-				_, err := GetComments(hash)
-				if err != nil {
-					Warning.Println("PullPosts", err)
-					continue
-				} else {
-					AssociateCommentWithPost(hash, postObj.Hash)
-				}
-
-			}
-		}
-
+		pullPostFrom(target)
 		Info.Println("Done pulling")
 
 	}

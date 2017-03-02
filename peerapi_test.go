@@ -27,6 +27,9 @@ func init() {
 	// Open connection to database
 	OpenDb()
 
+	// Initialize Curation module
+	MyCurator.Init()
+
 	// Create testNode
 	if !Exists(testNodePath) {
 		// Need to change Addresses in order to avoid clashes with MyNode
@@ -63,25 +66,6 @@ func init() {
 	fmt.Println("------------------------------------------------------------")
 }
 
-func TestGetComments(t *testing.T) {
-	fmt.Println("\nTry GetComments")
-	postID, nodeID := "123", "456"
-
-	err := AddNodeHostingPost(postID, nodeID)
-	if err != nil {
-		panic(err)
-	}
-
-	knownNodes, err := GetNodesHostingPost(postID)
-	if err != nil {
-		panic(err)
-	}
-
-	if knownNodes[0] != "456" {
-		t.Errorf(`Expected node ID is 456`)
-	}
-}
-
 func TestCommentsAPI(t *testing.T) {
 	fmt.Println("\nTry /comments")
 
@@ -92,6 +76,14 @@ func TestCommentsAPI(t *testing.T) {
 	}
 
 	fmt.Println("resp: ", comments)
+}
+
+func TestGetPostsAPI(t *testing.T) {
+	pullPostFrom(testNode.Identity.Pretty())
+
+	params := make(map[string]interface{})
+	fmt.Println("Curation suggested comments:")
+	fmt.Println(MyCurator.GetContent(params))
 }
 
 func TestHealthAPI(t *testing.T) {

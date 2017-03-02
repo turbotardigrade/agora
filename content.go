@@ -110,6 +110,7 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 }
 
 func GetPost(postID string) (*Post, error) {
+	// @TODO maybe only need to get POST if we haven't retrieved it yet
 	obj, err := GetIPFSObj(postID)
 	if err != nil {
 		return nil, err
