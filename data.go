@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/fatih/structs"
-	"github.com/ipfs/go-ipfs/core/coreunix"
+	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/coreunix"
 )
 
 // IPFSObj is an abstraction to deal with objects / blobs from IPFS;

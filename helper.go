@@ -9,7 +9,7 @@ import (
 	"os"
 	"path"
 
-	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
+	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
 )
 
 // B converts string to byte, just a helper for less typing...

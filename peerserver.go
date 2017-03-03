@@ -1,10 +1,10 @@
 package main
 
 import (
-	"gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
+	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
 	"time"
 
-	"github.com/ipfs/go-ipfs/core/corenet"
+	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/corenet"
 )
 
 // PeerServer asynchronous (non-blocking) server that registers

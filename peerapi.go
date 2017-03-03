@@ -1,6 +1,6 @@
 package main
 
-import "gx/ipfs/QmQx1dHDDYENugYgqA22BaBrRfuv1coSsuPiM7rYh1wwGH/go-libp2p-net"
+import "gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
 
 // StartPeerAPI starts PeerServer and register PeerAPI handlers which
 // will asynchronously listen for incoming requests
