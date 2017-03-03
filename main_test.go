@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ipfs/go-ipfs/repo/config"
+	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/config"
 )
 
 const testNodePath = "./data/TestNode"
