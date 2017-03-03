@@ -33,6 +33,10 @@ var cmd2func = map[string]func(args map[string]interface{}){
 	"postContent":         gAPI.postContent,
 	"setPostUserData":     gAPI.setPostUserData,
 	"setCommentUserData":  gAPI.setCommentUserData,
+
+	"upvote":   gAPI.upvote,
+	"downvote": gAPI.downvote,
+	"flag":     gAPI.flag,
 }
 
 // STartGUIPipe is a blocking loop providing a pipe for the GUI to
@@ -206,4 +210,40 @@ func (*GUIAPI) setCommentUserData(args map[string]interface{}) {
 
 func (*GUIAPI) postContent(args map[string]interface{}) {
 	fmt.Println(`{"res": "DEPRECATED"}`)
+}
+
+func (*GUIAPI) upvote(args map[string]interface{}) {
+	hash, ok := args["hash"].(string)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	MyCurator.UpvoteContent(hash)
+}
+
+func (*GUIAPI) downvote(args map[string]interface{}) {
+	hash, ok := args["hash"].(string)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	MyCurator.DownvoteContent(hash)
+}
+
+func (*GUIAPI) flag(args map[string]interface{}) {
+	hash, ok := args["hash"].(string)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	isFlagged, ok := args["isFlagged"].(bool)
+	if !ok {
+		fmt.Println(`{"error": "Argument not well formatted."}`)
+		return
+	}
+
+	MyCurator.FlagContent(hash, isFlagged)
 }

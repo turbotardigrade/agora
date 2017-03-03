@@ -115,13 +115,13 @@ func (c *DefaultCurator) GetContent(params map[string]interface{}) []string {
 }
 
 func (c *DefaultCurator) FlagContent(hash string, isFlagged bool) {
-
+	Info.Println(hash, "flagged", isFlagged)
 }
 
 func (c *DefaultCurator) UpvoteContent(hash string) {
-
+	Info.Println(hash, "upvoted")
 }
 
 func (c *DefaultCurator) DownvoteContent(hash string) {
-
+	Info.Println(hash, "donwvoted")
 }
