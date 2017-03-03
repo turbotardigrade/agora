@@ -32,6 +32,7 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 	// listen asynchronously
 	go func() {
 		for {
+			// @TODO we might have to do this asynchronously
 			stream, err := list.Accept()
 			if err != nil {
 				Error.Println(err)
@@ -41,13 +42,12 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 			Info.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
 
 			var blacklisted bool
-
-			BoltGet(blacklistBucket, p.Identity.Pretty(), blacklisted)
+			BoltGet(db.DB, blacklistBucket, p.Identity.Pretty(), blacklisted)
 
 			if blacklisted {
 				Info.Println("Node is blacklisted, connection will be aborted")
 			} else {
-				BoltSet(knownNodesBucket, p.Identity.Pretty(), time.Now().UnixNano())
+				BoltSet(db.DB, knownNodesBucket, p.Identity.Pretty(), time.Now().UnixNano())
 				handler(stream)
 			}
 
@@ -59,9 +59,9 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 }
 
 func AddNodeToBlacklist(identity string) error {
-	return BoltSet(blacklistBucket, identity, true)
+	return BoltSet(db.DB, blacklistBucket, identity, true)
 }
 
 func RemoveNodeFromBlacklist(identity string) error {
-	return BoltDelete(blacklistBucket, identity)
+	return BoltDelete(db.DB, blacklistBucket, identity)
 }

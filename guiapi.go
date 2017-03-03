@@ -181,7 +181,7 @@ func (*GUIAPI) setPostUserData(args map[string]interface{}) {
 	pArgs := setPostUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	err := SetPostUserData(pArgs.Hash, pArgs.UserData)
+	err := db.SetPostUserData(pArgs.Hash, pArgs.UserData)
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
 		return
@@ -199,7 +199,7 @@ func (*GUIAPI) setCommentUserData(args map[string]interface{}) {
 	pArgs := setCommentUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	err := SetCommentUserData(pArgs.Hash, pArgs.UserData)
+	err := db.SetCommentUserData(pArgs.Hash, pArgs.UserData)
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
 		return

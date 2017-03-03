@@ -4,13 +4,13 @@ package main
 // seed the postID given
 func GetNodesHostingPost(postID string) ([]string, error) {
 	// @TODO check if postID is a valid hash
-	return GetHostingNodes(postID)
+	return db.GetHostingNodes(postID)
 }
 
 // AddNodeHostingPost adds the nodeID to the database for the given postID
 // @TODO Validate postID and nodeID
 func AddNodeHostingPost(postID string, nodeID string) error {
-	return AddHostingNode(postID, nodeID)
+	return db.AddHostingNode(postID, nodeID)
 }
 
 // @TODO need to refactor
@@ -36,7 +36,7 @@ func pullPostFrom(target string) {
 			continue
 		}
 
-		AddHostingNode(postObj.Hash, target)
+		db.AddHostingNode(postObj.Hash, target)
 
 		// Get Comments from node
 		commentHashes, err := Client{MyNode}.GetComments(target, postObj.Hash)
@@ -47,7 +47,7 @@ func pullPostFrom(target string) {
 				Warning.Println("PullPosts", err)
 				continue
 			} else {
-				AssociateCommentWithPost(hash, postObj.Hash)
+				db.AssociateCommentWithPost(hash, postObj.Hash)
 			}
 
 		}

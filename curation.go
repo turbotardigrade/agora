@@ -89,7 +89,6 @@ func (c *DefaultCurator) Init() error {
 }
 
 func (c *DefaultCurator) OnPostAdded(obj *Post, isWhitelabeled bool) bool {
-	Info.Println("OnPostAdded")
 	err := curationDB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(B(curPostBucket))
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)

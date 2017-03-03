@@ -40,7 +40,7 @@ func GetCommentsHandler(stream net.Stream) {
 	ReadJSON(stream, &req)
 
 	// @TODO lookup comments for given req.Post
-	commentHashes, err := GetPostComments(req.Post)
+	commentHashes, err := db.GetPostComments(req.Post)
 	if err != nil {
 		Warning.Println(err)
 	}
@@ -74,7 +74,7 @@ type GetPostsResp struct {
 
 // GetPostsHandler provides stream handler
 func GetPostsHandler(stream net.Stream) {
-	posts, err := GetPosts()
+	posts, err := db.GetPosts()
 	if err != nil {
 		Warning.Println("Error retrieving list of posts: ", err)
 		return

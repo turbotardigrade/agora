@@ -69,7 +69,7 @@ func NewPost(user *User, title, content string) (*IPFSObj, error) {
 	}
 	data.Hash = obj.Hash
 
-	err = AddHostingNode(obj.Hash, MyNode.Identity.Pretty())
+	err = db.AddHostingNode(obj.Hash, MyNode.Identity.Pretty())
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	}
 	data.Hash = obj.Hash
 
-	err = AssociateCommentWithPost(obj.Hash, postID)
+	err = db.AssociateCommentWithPost(obj.Hash, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func GetPost(postID string) (*Post, error) {
 	post.Hash = obj.Hash
 	post.Key = obj.Key
 
-	userData := GetPostUserData(postID)
+	userData := db.GetPostUserData(postID)
 	post.UserData = userData
 
 	return post, nil
@@ -146,10 +146,11 @@ func GetComment(commentID string) (*Comment, error) {
 	comment.Hash = obj.Hash
 	comment.Key = obj.Key
 
-	userData := GetCommentUserData(commentID)
+	userData := db.GetCommentUserData(commentID)
 	comment.UserData = userData
 
-	err = AssociateCommentWithPost(obj.Hash, comment.Post)
+	Warning.Println("post", comment.Post)
+	err = db.AssociateCommentWithPost(obj.Hash, comment.Post)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +159,7 @@ func GetComment(commentID string) (*Comment, error) {
 }
 
 func GetComments(postID string) ([]Comment, error) {
-	commentHashes, err := GetPostComments(postID)
+	commentHashes, err := db.GetPostComments(postID)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func GetContentPosts() ([]Post, error) {
 }
 
 func GetAllPosts() ([]Post, error) {
-	postHashes, err := GetPosts()
+	postHashes, err := db.GetPosts()
 	if err != nil {
 		return nil, err
 	}
