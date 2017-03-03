@@ -17,17 +17,22 @@ type Command struct {
 	Arguments map[string]interface{}
 }
 
+// GUIAPI is simply used as namespace
+type GUIAPI struct{}
+
+var gAPI = GUIAPI{}
+
 // cmd2func maps the command with its respective handler function
 var cmd2func = map[string]func(args map[string]interface{}){
-	"getPost":             getPost,
-	"getComment":          getComment,
-	"getPosts":            getPosts,
-	"postPost":            postPost,
-	"getCommentsFromPost": getCommentsFromPost,
-	"postComment":         postComment,
-	"postContent":         postContent,
-	"setPostUserData":     setPostUserData,
-	"setCommentUserData":  setCommentUserData,
+	"getPost":             gAPI.getPost,
+	"getComment":          gAPI.getComment,
+	"getPosts":            gAPI.getPosts,
+	"postPost":            gAPI.postPost,
+	"getCommentsFromPost": gAPI.getCommentsFromPost,
+	"postComment":         gAPI.postComment,
+	"postContent":         gAPI.postContent,
+	"setPostUserData":     gAPI.setPostUserData,
+	"setCommentUserData":  gAPI.setCommentUserData,
 }
 
 // STartGUIPipe is a blocking loop providing a pipe for the GUI to
@@ -44,19 +49,23 @@ func StartGUIPipe() {
 			continue
 		}
 
-		handler, ok := cmd2func[cmd.Command]
-		if !ok {
-			fmt.Println(`{"error": "No such command."}`)
-		} else {
-			handler(cmd.Arguments)
-		}
+		GUIHandle(cmd)
+	}
+}
+
+func GUIHandle(cmd Command) {
+	handler, ok := cmd2func[cmd.Command]
+	if !ok {
+		fmt.Println(`{"error": "No such command."}`)
+	} else {
+		handler(cmd.Arguments)
 	}
 }
 
 //////////////////////////////////////////////////////////////////////
 // handler functions
 
-func getPost(args map[string]interface{}) {
+func (*GUIAPI) getPost(args map[string]interface{}) {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		fmt.Println(`{"error": "Argument not well formatted."}`)
@@ -73,7 +82,7 @@ func getPost(args map[string]interface{}) {
 	fmt.Println(string(res))
 }
 
-func getComment(args map[string]interface{}) {
+func (*GUIAPI) getComment(args map[string]interface{}) {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		fmt.Println(`{"error": "Argument not well formatted."}`)
@@ -90,7 +99,7 @@ func getComment(args map[string]interface{}) {
 	fmt.Println(string(res))
 }
 
-func postPost(args map[string]interface{}) {
+func (*GUIAPI) postPost(args map[string]interface{}) {
 	content, ok := args["content"].(string)
 	if !ok {
 		fmt.Println(`{"error": "Argument not well formatted."}`)
@@ -112,7 +121,7 @@ func postPost(args map[string]interface{}) {
 	fmt.Println(`{"hash": "` + obj.Hash + `"}`)
 }
 
-func getPosts(args map[string]interface{}) {
+func (*GUIAPI) getPosts(args map[string]interface{}) {
 	posts, err := GetAllPosts()
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
@@ -123,7 +132,7 @@ func getPosts(args map[string]interface{}) {
 	fmt.Println(string(js))
 }
 
-func getCommentsFromPost(args map[string]interface{}) {
+func (*GUIAPI) getCommentsFromPost(args map[string]interface{}) {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		fmt.Println(`{"error": "Argument not well formatted."}`)
@@ -146,7 +155,7 @@ type postCommentArgs struct {
 	Parent  string
 }
 
-func postComment(args map[string]interface{}) {
+func (*GUIAPI) postComment(args map[string]interface{}) {
 	pArgs := postCommentArgs{}
 	mapstructure.Decode(args, &pArgs)
 
@@ -164,7 +173,7 @@ type setPostUserDataArgs struct {
 	UserData PostUserData
 }
 
-func setPostUserData(args map[string]interface{}) {
+func (*GUIAPI) setPostUserData(args map[string]interface{}) {
 	pArgs := setPostUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
@@ -182,7 +191,7 @@ type setCommentUserDataArgs struct {
 	UserData CommentUserData
 }
 
-func setCommentUserData(args map[string]interface{}) {
+func (*GUIAPI) setCommentUserData(args map[string]interface{}) {
 	pArgs := setCommentUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
@@ -195,6 +204,6 @@ func setCommentUserData(args map[string]interface{}) {
 	fmt.Println(`{"status": "success"}`)
 }
 
-func postContent(args map[string]interface{}) {
+func (*GUIAPI) postContent(args map[string]interface{}) {
 	fmt.Println(`{"res": "DEPRECATED"}`)
 }
