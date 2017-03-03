@@ -30,7 +30,7 @@ func pullPostFrom(target string) {
 			continue
 		}
 
-		isAccepted := MyCurator.OnPostAdded(postObj)
+		isAccepted := MyCurator.OnPostAdded(postObj, false)
 		if !isAccepted {
 			Info.Println("Content got rejected. Hash:", postObj.Hash)
 			continue

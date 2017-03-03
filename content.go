@@ -67,11 +67,14 @@ func NewPost(user *User, title, content string) (*IPFSObj, error) {
 	if err != nil {
 		return nil, err
 	}
+	data.Hash = obj.Hash
 
 	err = AddHostingNode(obj.Hash, MyNode.Identity.Pretty())
 	if err != nil {
 		return nil, err
 	}
+
+	MyCurator.OnPostAdded(&data, true)
 
 	return obj, nil
 }
@@ -100,11 +103,14 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	if err != nil {
 		return nil, err
 	}
+	data.Hash = obj.Hash
 
 	err = AssociateCommentWithPost(obj.Hash, postID)
 	if err != nil {
 		return nil, err
 	}
+
+	MyCurator.OnCommentAdded(&data, true)
 
 	return obj, nil
 }
@@ -170,6 +176,24 @@ func GetComments(postID string) ([]Comment, error) {
 	}
 
 	return comments, nil
+}
+
+func GetContentPosts() ([]Post, error) {
+	postHashes := MyCurator.GetContent(make(map[string]interface{}))
+
+	// @TODO @PERFORMANCE can do this concurrently
+	posts := []Post{}
+	for _, h := range postHashes {
+		post, err := GetPost(h)
+		if err != nil {
+			Warning.Println("Could not retrieve post with id", h)
+			continue
+		}
+
+		posts = append(posts, *post)
+	}
+
+	return posts, nil
 }
 
 func GetAllPosts() ([]Post, error) {

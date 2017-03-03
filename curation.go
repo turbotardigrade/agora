@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -19,13 +20,13 @@ type Curator interface {
 	// from other peers, if this functions returns false, the
 	// content will be rejected (e.g. in the case of spam) and not
 	// stored by our node
-	OnPostAdded(obj *Post) bool
+	OnPostAdded(obj *Post, isWhitelabeled bool) bool
 
 	// OnCommentAdded will be called when new comments are
 	// retrieved from other peers, if this functions returns
 	// false, the content will be rejected (e.g. in the case of
 	// spam) and not stored by our node
-	OnCommentAdded(obj *Comment) bool
+	OnCommentAdded(obj *Comment, isWhitelabeled bool) bool
 
 	// GetContent gives back an ordered array of post hashes of
 	// suggested content by the curation module
@@ -50,7 +51,8 @@ type DefaultCurator struct{}
 var curationDB *bolt.DB
 
 const curationDBPath = "./data/curation.db"
-const curationBucket = "exampleCuration"
+const curPostBucket = "exampleCuration_post"
+const curFlagBucket = "exampleCuration_flags"
 
 // Init initializes boltdb which simply keeps track of saved hashes
 // and their arrivaltime
@@ -66,8 +68,19 @@ func (c *DefaultCurator) Init() error {
 	}
 
 	// Create Buckets if they don't exists
+	err = curationDB.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(curPostBucket))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	return curationDB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(curationBucket))
+		_, err := tx.CreateBucketIfNotExists([]byte(curFlagBucket))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -75,12 +88,11 @@ func (c *DefaultCurator) Init() error {
 	})
 }
 
-func (c *DefaultCurator) OnPostAdded(obj *Post) bool {
+func (c *DefaultCurator) OnPostAdded(obj *Post, isWhitelabeled bool) bool {
+	Info.Println("OnPostAdded")
 	err := curationDB.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(B(curationBucket))
-		timestamp := string(time.Now().Unix())
-
-		log.Println(timestamp)
+		bucket := tx.Bucket(B(curPostBucket))
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 
 		return bucket.Put(B(obj.Hash), B(timestamp))
 	})
@@ -92,15 +104,25 @@ func (c *DefaultCurator) OnPostAdded(obj *Post) bool {
 	return true
 }
 
-func (c *DefaultCurator) OnCommentAdded(obj *Post) bool {
+func (c *DefaultCurator) OnCommentAdded(obj *Comment, isWhitelabeled bool) bool {
 	return true
 }
 
 func (c *DefaultCurator) GetContent(params map[string]interface{}) []string {
 	hashes := []string{}
 	err := curationDB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(curationBucket))
+		b := tx.Bucket(B(curPostBucket))
 		b.ForEach(func(k, _ []byte) error {
+
+			// Check if content is flagged
+			fB := tx.Bucket(B(curFlagBucket))
+
+			isFlagged := fB.Get(k)
+			if isFlagged != nil && string(isFlagged) == "true" {
+				// Skip flagged elemens
+				return nil
+			}
+
 			hashes = append(hashes, string(k))
 			return nil
 		})
@@ -116,6 +138,20 @@ func (c *DefaultCurator) GetContent(params map[string]interface{}) []string {
 
 func (c *DefaultCurator) FlagContent(hash string, isFlagged bool) {
 	Info.Println(hash, "flagged", isFlagged)
+
+	err := curationDB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(curFlagBucket))
+
+		if isFlagged {
+			return bucket.Put(B(hash), B("true"))
+		} else {
+			return bucket.Put(B(hash), B("false"))
+		}
+
+	})
+	if err != nil {
+		Warning.Println("Error on adding content to curation", err)
+	}
 }
 
 func (c *DefaultCurator) UpvoteContent(hash string) {

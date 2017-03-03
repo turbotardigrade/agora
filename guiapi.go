@@ -126,7 +126,7 @@ func (*GUIAPI) postPost(args map[string]interface{}) {
 }
 
 func (*GUIAPI) getPosts(args map[string]interface{}) {
-	posts, err := GetAllPosts()
+	posts, err := GetContentPosts()
 	if err != nil {
 		fmt.Println(`{"error": "`, err, `"}`)
 		return
