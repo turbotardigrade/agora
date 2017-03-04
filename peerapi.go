@@ -121,3 +121,34 @@ func (c Client) CheckHealth(target string) (bool, error) {
 
 	return resp.Status == "OK", nil
 }
+
+// ----------------------------------------
+// /peers API
+
+// GetPeersResp defines response
+type GetPeersResp struct {
+	peers []string
+}
+
+// GetPeersHandler provides stream handler
+func GetPeersHandler(stream net.Stream) {
+	peers, err := db.GetPeers()
+
+	if err != nil {
+		Warning.Println("Error retrieving list of peers: ", err)
+		return
+	}
+
+	WriteJSON(stream, GetPeersResp{peers})
+}
+
+// GetPeers provides helper function query peers of a node
+func (c Client) GetPeers(target string) ([]string, error) {
+	var resp GetPeersResp
+	err := c.Node.Request(target, "/peers", nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.peers, nil
+}
