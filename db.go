@@ -122,3 +122,7 @@ func (m *Model) GetCommentUserData(hash string) (res CommentUserData) {
 func (m *Model) SetCommentUserData(hash string, data CommentUserData) error {
 	return BoltSet(m.DB, postBucket, hash, data)
 }
+
+func (m *Model) GetPeers() ([]string, error) {
+	return BoltGetKeys(m.DB, knownNodesBucket)
+}

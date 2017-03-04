@@ -6,8 +6,9 @@ import (
 	"github.com/boltdb/bolt"
 )
 
+// BoltGetKeys returns an array of all the keys from a given bucket
 func BoltGetKeys(db *bolt.DB, bucketName string) ([]string, error) {
-	keys := []string{}
+	var keys []string
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(postHostersBucket))
 		b.ForEach(func(k, _ []byte) error {
