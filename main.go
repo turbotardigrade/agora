@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -23,7 +24,12 @@ func init() {
 
 	// Initialize Logger
 	if *silent {
-		LoggerInit(ioutil.Discard, ioutil.Discard, ioutil.Discard, os.Stderr)
+		// If --silent is set log to a file instead
+		file, err := os.OpenFile("data/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalln("Failed to open log file")
+		}
+		LoggerInit(file, file, file, file)
 	} else {
 		LoggerInit(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	}
