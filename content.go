@@ -105,12 +105,15 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	}
 	data.Hash = obj.Hash
 
+	isAccepted := MyCurator.OnCommentAdded(&data, true)
+	if !isAccepted {
+		return nil, errors.New("Curation rejected the content")
+	}
+
 	err = db.AssociateCommentWithPost(obj.Hash, postID)
 	if err != nil {
 		return nil, err
 	}
-
-	MyCurator.OnCommentAdded(&data, true)
 
 	return obj, nil
 }
@@ -148,12 +151,6 @@ func GetComment(commentID string) (*Comment, error) {
 
 	userData := db.GetCommentUserData(commentID)
 	comment.UserData = userData
-
-	Warning.Println("post", comment.Post)
-	err = db.AssociateCommentWithPost(obj.Hash, comment.Post)
-	if err != nil {
-		return nil, err
-	}
 
 	return comment, nil
 }

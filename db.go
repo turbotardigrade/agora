@@ -22,7 +22,6 @@ const (
 	postCommentsBucket = "posts2comment"
 	postHostersBucket  = "post2hoster"
 	postBucket         = "postBucket"
-	commentBucket      = "commentBucket"
 	blacklistBucket    = "blacklistBucket"
 	knownNodesBucket   = "knownNodesBucket"
 )
@@ -33,7 +32,6 @@ var bucketNames = []string{
 	postCommentsBucket,
 	postHostersBucket,
 	postBucket,
-	commentBucket,
 	blacklistBucket,
 	knownNodesBucket,
 }
