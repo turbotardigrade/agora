@@ -9,6 +9,7 @@ func StartPeerAPI(node *Node) {
 	peerAPI.HandleFunc("/comments", GetCommentsHandler)
 	peerAPI.HandleFunc("/posts", GetPostsHandler)
 	peerAPI.HandleFunc("/health", GetHealthHandler)
+	peerAPI.HandleFunc("/peers", GetPeersHandler)
 }
 
 // Client should be used to send requests to the PeerAPI
