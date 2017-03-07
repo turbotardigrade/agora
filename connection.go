@@ -53,3 +53,22 @@ func pullPostFrom(target string) {
 		}
 	}
 }
+
+func getPeersOfPeers() ([]string, error) {
+	myPeers, err := db.GetPeers()
+	var allPeers []string
+
+	if err != nil {
+		Warning.Println("getPeersOfPeers", err)
+	}
+
+	for _, peerID := range myPeers {
+		peers, err := Client{MyNode}.GetPeers(peerID)
+		if err != nil {
+			Warning.Println("Error getting peers from "+peerID, err)
+		}
+		allPeers = append(allPeers, peers...)
+	}
+
+	return allPeers, err
+}
