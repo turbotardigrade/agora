@@ -24,12 +24,12 @@ var MyUser *User
 func init() {
 	var err error
 	if !Exists(MyUserConfPath) {
-		MyUser, err = NewUser("long")
+		MyUser, err = NewUser("DefaultBob")
 		if err != nil {
 			log.Fatal("Cannot generate new User identity", err)
 		}
 
-		userConfJSON, _ := json.Marshal(MyUser)
+		userConfJSON, _ := json.MarshalIndent(MyUser, "", "   ")
 		err = ioutil.WriteFile(MyUserConfPath, userConfJSON, 0644)
 
 		if err != nil {

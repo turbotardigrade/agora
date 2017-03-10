@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
+	"github.com/fatih/structs"
+
+	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/coreunix"
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/config"
 )
 
@@ -67,8 +69,8 @@ func init() {
 
 	// Might need to give some time for peerAPI info to propagate
 	// through IPFS network
-	fmt.Println("Wait 5 sec to seed node information to network...")
-	time.Sleep(5 * time.Second)
+	// fmt.Println("Wait 5 sec to seed node information to network...")
+	// time.Sleep(5 * time.Second)
 	fmt.Println("\n------------------------------------------------------------")
 	fmt.Println("Start tests")
 	fmt.Println("------------------------------------------------------------")
@@ -138,6 +140,41 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 	}
 
 	fmt.Println("\n/comments resp: ", comments)
+}
+
+func TestSignatureVerification(t *testing.T) {
+	fmt.Println("\n=== Try Post rigged content")
+	var err error
+
+	data := Post{
+		Alias:     MyUser.Alias,
+		Title:     "TrueTitle",
+		Content:   "TrueContent",
+		Timestamp: Now(),
+	}
+
+	// Inserted tempered data
+	obj := &IPFSObj{Key: MyUser.PubKeyRaw}
+	obj.Data = structs.New(data).Map()
+
+	obj.Signature, err = Sign(MyUser, obj.Data)
+	if err != nil {
+		panic(err)
+	}
+
+	// Temper with data
+	obj.Data["Content"] = "riggedContent"
+
+	// Add to IPFS Node Repository
+	hash, err := coreunix.Add(MyNode.IpfsNode, ToJSONReader(obj))
+	if err != nil {
+		panic(err)
+	}
+
+	obj, err = GetIPFSObj(hash)
+	if err == RiggedError {
+		t.Errorf("Expected to detect tampered data and throw RiggedError")
+	}
 }
 
 func TestGetPostsAPI(t *testing.T) {
