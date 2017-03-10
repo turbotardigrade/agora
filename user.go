@@ -1,13 +1,12 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
+	"crypto/ecdsa"
 	"encoding/json"
-	"encoding/pem"
 	"io/ioutil"
 	"log"
+
+	"github.com/gtank/cryptopasta"
 )
 
 const (
@@ -53,11 +52,11 @@ type User struct {
 	PrivKeyRaw string
 	Alias      string
 
-	PublicKey  *rsa.PublicKey  `json:"-"`
-	PrivateKey *rsa.PrivateKey `json:"-"`
+	PublicKey  *ecdsa.PublicKey  `json:"-"`
+	PrivateKey *ecdsa.PrivateKey `json:"-"`
 }
 
-func (u *User) GetPublicKey() (*rsa.PublicKey, error) {
+func (u *User) GetPublicKey() (*ecdsa.PublicKey, error) {
 	if u.PublicKey == nil {
 		if err := u.LoadKeys(); err != nil {
 			return nil, err
@@ -67,7 +66,7 @@ func (u *User) GetPublicKey() (*rsa.PublicKey, error) {
 	return u.PublicKey, nil
 }
 
-func (u *User) GetPrivateKey() (*rsa.PrivateKey, error) {
+func (u *User) GetPrivateKey() (*ecdsa.PrivateKey, error) {
 	if u.PrivateKey == nil {
 		if err := u.LoadKeys(); err != nil {
 			return nil, err
@@ -77,51 +76,32 @@ func (u *User) GetPrivateKey() (*rsa.PrivateKey, error) {
 	return u.PrivateKey, nil
 }
 
-func (u *User) LoadKeys() error {
-	block, _ := pem.Decode([]byte(u.PrivKeyRaw))
-	der := block.Bytes
-
-	key, err := x509.ParsePKCS1PrivateKey(der)
+func (u *User) LoadKeys() (err error) {
+	u.PrivateKey, err = cryptopasta.DecodePrivateKey([]byte(u.PrivKeyRaw))
 	if err != nil {
 		return err
 	}
 
-	u.PrivateKey = key
-	u.PublicKey = &key.PublicKey
-
-	return nil
+	u.PublicKey, err = cryptopasta.DecodePublicKey([]byte(u.PubKeyRaw))
+	return err
 }
 
 func NewUser(alias string) (*User, error) {
-	key, err := rsa.GenerateKey(rand.Reader, nBitsForUserKeypair)
+	key, err := cryptopasta.NewSigningKey()
 	if err != nil {
 		return nil, err
 	}
 
-	privKeyDer := x509.MarshalPKCS1PrivateKey(key)
-	privKeyBlock := pem.Block{
-		Type:    "RSA PRIVATE KEY",
-		Headers: nil,
-		Bytes:   privKeyDer,
-	}
-	privKeyPem := string(pem.EncodeToMemory(&privKeyBlock))
+	pubKeyRaw, err := cryptopasta.EncodePublicKey(&key.PublicKey)
+	privKeyRaw, err := cryptopasta.EncodePrivateKey(key)
 
-	publicKey := key.PublicKey
-	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	publicKeyBlock := pem.Block{
-		Type:    "PUBLIC KEY",
-		Headers: nil,
-		Bytes:   publicKeyDer,
-	}
-	publicKeyPem := string(pem.EncodeToMemory(&publicKeyBlock))
-
-	return &User{
-		PrivKeyRaw: privKeyPem,
-		PubKeyRaw:  publicKeyPem,
+	u := &User{
+		PubKeyRaw:  string(pubKeyRaw),
+		PrivKeyRaw: string(privKeyRaw),
+		PrivateKey: key,
+		PublicKey:  &key.PublicKey,
 		Alias:      alias,
-	}, nil
+	}
+
+	return u, nil
 }

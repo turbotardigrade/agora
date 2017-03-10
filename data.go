@@ -29,9 +29,8 @@ func NewIPFSObj(node *Node, user *User, data interface{}) (*IPFSObj, error) {
 	obj := &IPFSObj{Key: user.PubKeyRaw}
 	obj.Data = structs.New(data).Map()
 
-	// @TODO make cryptographic signature with given key and data
 	var err error
-	obj.Signature, err = Sign(user, data)
+	obj.Signature, err = Sign(user, obj.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +45,15 @@ func NewIPFSObj(node *Node, user *User, data interface{}) (*IPFSObj, error) {
 	return obj, nil
 }
 
+// RiggedError is thrown if the signature of a post does not match
+// with public key identity, means someone tries to impersonate
+// someone else
+var RiggedError = errors.New("This object got rigged")
+
+// GetIPFSObj retrieves data from IPFS and verifies the signature. If
+// the signature does not match, it means that someone pretends to
+// send content under someone else's identity, which will throw a
+// RiggedError
 func GetIPFSObj(hash string) (*IPFSObj, error) {
 	ctx := context.Background() // Not sure what this should be used for
 	r, err := coreunix.Cat(ctx, MyNode.IpfsNode, hash)
@@ -62,9 +70,10 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 	}
 
 	if !ok {
-		return nil, errors.New("This got rigged")
+		return nil, RiggedError
 	}
 
+	// Set this as the hash is not stored inside IPFS blob
 	obj.Hash = hash
 	return &obj, nil
 }
