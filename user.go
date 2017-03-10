@@ -36,22 +36,60 @@ func init() {
 		if err != nil {
 			log.Fatal("Cannot write new UserConf to disk", err)
 		}
-	} else {
-		file, err := ioutil.ReadFile(MyUserConfPath)
-		if err != nil {
-			log.Fatal("Cannot read user config", err)
-		}
-
-		var user User
-		json.Unmarshal(file, &user)
-		MyUser = &user
 	}
+
+	file, err := ioutil.ReadFile(MyUserConfPath)
+	if err != nil {
+		log.Fatal("Cannot read user config", err)
+	}
+
+	var user User
+	json.Unmarshal(file, &user)
+	MyUser = &user
 }
 
 type User struct {
-	PubKey  string
-	PrivKey string
-	Alias   string
+	PubKeyRaw  string
+	PrivKeyRaw string
+	Alias      string
+
+	PublicKey  *rsa.PublicKey  `json:"-"`
+	PrivateKey *rsa.PrivateKey `json:"-"`
+}
+
+func (u *User) GetPublicKey() (*rsa.PublicKey, error) {
+	if u.PublicKey == nil {
+		if err := u.LoadKeys(); err != nil {
+			return nil, err
+		}
+	}
+
+	return u.PublicKey, nil
+}
+
+func (u *User) GetPrivateKey() (*rsa.PrivateKey, error) {
+	if u.PrivateKey == nil {
+		if err := u.LoadKeys(); err != nil {
+			return nil, err
+		}
+	}
+
+	return u.PrivateKey, nil
+}
+
+func (u *User) LoadKeys() error {
+	block, _ := pem.Decode([]byte(u.PrivKeyRaw))
+	der := block.Bytes
+
+	key, err := x509.ParsePKCS1PrivateKey(der)
+	if err != nil {
+		return err
+	}
+
+	u.PrivateKey = key
+	u.PublicKey = &key.PublicKey
+
+	return nil
 }
 
 func NewUser(alias string) (*User, error) {
@@ -82,8 +120,8 @@ func NewUser(alias string) (*User, error) {
 	publicKeyPem := string(pem.EncodeToMemory(&publicKeyBlock))
 
 	return &User{
-		PrivKey: privKeyPem,
-		PubKey:  publicKeyPem,
-		Alias:   alias,
+		PrivKeyRaw: privKeyPem,
+		PubKeyRaw:  publicKeyPem,
+		Alias:      alias,
 	}, nil
 }

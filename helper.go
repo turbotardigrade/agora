@@ -103,3 +103,8 @@ func StringInSlice(a string, list []string) bool {
 	}
 	return false
 }
+
+func PrettyPrint(obj interface{}) {
+	b, _ := json.MarshalIndent(obj, "", "  ")
+	Info.Println(string(b))
+}

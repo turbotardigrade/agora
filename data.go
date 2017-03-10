@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/fatih/structs"
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/coreunix"
+
+	"github.com/fatih/structs"
 )
 
 // IPFSObj is an abstraction to deal with objects / blobs from IPFS;
@@ -25,7 +26,7 @@ type IPFSObj struct {
 // NewIPFSObj is a generalized helper function to created signed
 // IPFSObj and add it to the IPFS network
 func NewIPFSObj(node *Node, user *User, data interface{}) (*IPFSObj, error) {
-	obj := &IPFSObj{Key: user.PubKey}
+	obj := &IPFSObj{Key: user.PubKeyRaw}
 	obj.Data = structs.New(data).Map()
 
 	// @TODO make cryptographic signature with given key and data
@@ -55,7 +56,6 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 	obj := IPFSObj{}
 	err = FromJSONReader(r, &obj)
 
-	// @TODO verify
 	ok, err := Verify(&obj)
 	if err != nil {
 		return nil, err
@@ -67,22 +67,4 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 
 	obj.Hash = hash
 	return &obj, nil
-}
-
-// Verify checks if the data of IPFSObj is valid by checking the
-// signature with provided PublicKey of the author
-func Verify(obj *IPFSObj) (bool, error) {
-	// --------------------------------------------------
-	// @TODO
-	// --------------------------------------------------
-	return true, nil
-}
-
-// Sign creates cryptographic signature to let other nodes verify if
-// given User has indeed posted this
-func Sign(user *User, data interface{}) (string, error) {
-	// --------------------------------------------------
-	// @TODO
-	// --------------------------------------------------
-	return "TODO", nil
 }

@@ -57,10 +57,9 @@ func init() {
 		panic(err)
 	}
 
-	testUser = &User{
-		Alias:   "longh-test",
-		PubKey:  "PubKey test",
-		PrivKey: "PrivKey test",
+	testUser, err = NewUser("tester")
+	if err != nil {
+		panic(err)
 	}
 
 	// Start PeerAPIs
@@ -93,7 +92,8 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println("\n", post)
+	fmt.Println("")
+	PrettyPrint(post)
 
 	if post.Content != postContent || post.Title != postTitle {
 		t.Errorf(`Expected posted post and retrieved post to be the same`)
@@ -115,7 +115,8 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 		panic(err)
 	}
 
-	fmt.Println("\n", comment)
+	fmt.Println("")
+	PrettyPrint(comment)
 
 	if comment.Content != commentContent {
 		t.Errorf(`Expected posted comment and retrieved comment to be the same`)
