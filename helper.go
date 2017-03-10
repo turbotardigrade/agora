@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
+	"time"
 
 	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
 )
@@ -107,4 +109,8 @@ func StringInSlice(a string, list []string) bool {
 func PrettyPrint(obj interface{}) {
 	b, _ := json.MarshalIndent(obj, "", "  ")
 	Info.Println(string(b))
+}
+
+func Now() string {
+	return strconv.FormatInt(time.Now().Unix(), 10)
 }

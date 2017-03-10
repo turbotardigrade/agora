@@ -61,10 +61,10 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 		return nil, err
 	}
 
-	obj := IPFSObj{}
-	err = FromJSONReader(r, &obj)
+	obj := &IPFSObj{}
+	err = FromJSONReader(r, obj)
 
-	ok, err := Verify(&obj)
+	ok, err := Verify(obj)
 	if err != nil {
 		return nil, err
 	}
@@ -75,5 +75,5 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 
 	// Set this as the hash is not stored inside IPFS blob
 	obj.Hash = hash
-	return &obj, nil
+	return obj, nil
 }

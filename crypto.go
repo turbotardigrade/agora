@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/gob"
+	"encoding/json"
 	"gx/ipfs/QmaPHkZLbQQbvcyavn8q1GFHg6o6yeceyHFSJ3Pjf3p3TQ/go-crypto/ssh"
 	"strings"
 
@@ -28,20 +27,34 @@ func Verify(obj *IPFSObj) (bool, error) {
 		return false, err
 	}
 
-	var dataBuf bytes.Buffer
-	gob.NewEncoder(&dataBuf).Encode(obj.Data)
+	data, err := json.Marshal(obj.Data)
+	if err != nil {
+		return false, err
+	}
 
 	pubKey, err := cryptopasta.DecodePublicKey([]byte(obj.Key))
-	return cryptopasta.Verify(dataBuf.Bytes(), signature, pubKey), nil
+	if err != nil {
+		return false, err
+	}
+
+	return cryptopasta.Verify(data, signature, pubKey), nil
 }
 
 // Sign creates cryptographic signature to let other nodes verify if
 // given User has indeed posted this
-func Sign(user *User, data interface{}) (string, error) {
-	var buf bytes.Buffer
-	gob.NewEncoder(&buf).Encode(data)
+func Sign(user *User, data map[string]interface{}) (string, error) {
 
-	signature, err := cryptopasta.Sign(buf.Bytes(), user.PrivateKey)
+	dataBuf, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	privKey, err := user.GetPrivateKey()
+	if err != nil {
+		return "", err
+	}
+
+	signature, err := cryptopasta.Sign(dataBuf, privKey)
 	if err != nil {
 		return "", err
 	}

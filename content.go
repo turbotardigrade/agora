@@ -2,14 +2,11 @@ package main
 
 import (
 	"errors"
-	"time"
 
 	"github.com/mitchellh/mapstructure"
 )
 
 /** @TODOs:
-- Create cryptographic signature with author's private key
-- Verify signature with author key
 - Limit content size to e.g. 1kb
 */
 
@@ -26,12 +23,15 @@ type IPFSData struct {
 // posts and also provides the model for database
 type Post struct {
 	// Alias is authors display name
-	Alias     string
-	Title     string
-	Content   string
-	Timestamp int64
+	Alias   string
+	Title   string
+	Content string
 
-	// @TODO these fields are still getting saved to IPFS
+	// Note that we are using string and not
+	// int64, because int64 will be converted to
+	// floats when marshalling from interface{}
+	Timestamp string
+
 	IPFSData
 	UserData PostUserData
 }
@@ -46,9 +46,13 @@ type Comment struct {
 	Parent string
 
 	// Alias is authors display name
-	Alias     string
-	Content   string
-	Timestamp int64
+	Alias   string
+	Content string
+
+	// Note that we are using string and not
+	// int64, because int64 will be converted to
+	// floats when marshalling from interface{}
+	Timestamp string
 
 	IPFSData
 	UserData CommentUserData
@@ -60,7 +64,7 @@ func NewPost(user *User, title, content string) (*IPFSObj, error) {
 		Alias:     user.Alias,
 		Title:     title,
 		Content:   content,
-		Timestamp: time.Now().Unix(),
+		Timestamp: Now(),
 	}
 
 	obj, err := NewIPFSObj(MyNode, user, data)
@@ -96,7 +100,7 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 		Parent:    parent,
 		Alias:     user.Alias,
 		Content:   content,
-		Timestamp: time.Now().Unix(),
+		Timestamp: Now(),
 	}
 
 	obj, err := NewIPFSObj(MyNode, user, data)
