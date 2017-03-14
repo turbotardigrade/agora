@@ -3,11 +3,14 @@ package main
 import (
 	"context"
 	"errors"
+	"time"
 
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/coreunix"
 
 	"github.com/fatih/structs"
 )
+
+const IPFSTimeoutDuration = 30 * time.Second
 
 // IPFSObj is an abstraction to deal with objects / blobs from IPFS;
 // also does signing and verification
@@ -55,7 +58,9 @@ var RiggedError = errors.New("This object got rigged")
 // send content under someone else's identity, which will throw a
 // RiggedError
 func GetIPFSObj(hash string) (*IPFSObj, error) {
-	ctx := context.Background() // Not sure what this should be used for
+	ctx, cancel := context.WithTimeout(context.Background(), IPFSTimeoutDuration)
+	defer cancel()
+
 	r, err := coreunix.Cat(ctx, MyNode.IpfsNode, hash)
 	if err != nil {
 		return nil, err
