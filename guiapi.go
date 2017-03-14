@@ -73,7 +73,18 @@ func GUIHandle(cmd Command) string {
 		return `{"error": "No such command."}`
 	}
 
-	return handler(cmd.Arguments)
+	ch := make(chan string, 1)
+	go func() {
+		ch <- handler(cmd.Arguments)
+	}()
+
+	select {
+	case resp := <-ch:
+		return resp
+	case <-time.After(GUIAPITimeout):
+		return `{"error": "Timelimit exceeded."}`
+	}
+
 }
 
 //////////////////////////////////////////////////////////////////////
