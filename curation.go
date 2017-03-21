@@ -9,7 +9,7 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-var MyCurator = DefaultCurator{}
+var MyCurator = MLCurator{}
 
 type Curator interface {
 	// Init will be called on initialization, use this function to

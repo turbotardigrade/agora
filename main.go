@@ -40,7 +40,11 @@ func main() {
 	defer CloseDb()
 
 	// Initialize Curation module
-	MyCurator.Init()
+	err := MyCurator.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer MyCurator.Close()
 
 	// Starts PeerServer (non-blocking)
 	if !FlagNoPeerServer {
