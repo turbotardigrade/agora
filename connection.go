@@ -1,22 +1,9 @@
 package main
 
-// GetNodesHostingPost gives a list of known nodes who are known to
-// seed the postID given
-func GetNodesHostingPost(postID string) ([]string, error) {
-	// @TODO check if postID is a valid hash
-	return db.GetHostingNodes(postID)
-}
-
-// AddNodeHostingPost adds the nodeID to the database for the given postID
-// @TODO Validate postID and nodeID
-func AddNodeHostingPost(postID string, nodeID string) error {
-	return db.AddHostingNode(postID, nodeID)
-}
-
 // @TODO need to refactor
-func pullPostFrom(target string) {
+func (n *Node) pullPostFrom(target string) {
 	Info.Println("Request Posts from Peer", target)
-	postHashes, err := Client{MyNode}.GetPosts(target)
+	postHashes, err := Client{n}.GetPosts(target)
 	if err != nil {
 		Warning.Println(err)
 	} else {
@@ -24,7 +11,7 @@ func pullPostFrom(target string) {
 	}
 
 	for _, hash := range postHashes {
-		postObj, err := GetPost(hash)
+		postObj, err := n.GetPost(hash)
 		if err != nil {
 			Warning.Println("PullPosts", err)
 			continue
@@ -36,26 +23,26 @@ func pullPostFrom(target string) {
 			continue
 		}
 
-		db.AddHostingNode(postObj.Hash, target)
+		n.AddHostingNode(postObj.Hash, target)
 
 		// Get Comments from node
-		commentHashes, err := Client{MyNode}.GetComments(target, postObj.Hash)
+		commentHashes, err := Client{n}.GetComments(target, postObj.Hash)
 
 		for _, hash := range commentHashes {
-			_, err := GetComments(hash)
+			_, err := n.GetComments(hash)
 			if err != nil {
 				Warning.Println("PullPosts", err)
 				continue
 			} else {
-				db.AssociateCommentWithPost(hash, postObj.Hash)
+				n.AssociateCommentWithPost(hash, postObj.Hash)
 			}
 
 		}
 	}
 }
 
-func getPeersOfPeers() ([]string, error) {
-	myPeers, err := db.GetPeers()
+func (n *Node) getPeersOfPeers() ([]string, error) {
+	myPeers, err := n.GetPeers()
 	var allPeers []string
 
 	if err != nil {
@@ -63,7 +50,7 @@ func getPeersOfPeers() ([]string, error) {
 	}
 
 	for _, peerID := range myPeers {
-		peers, err := Client{MyNode}.GetPeers(peerID)
+		peers, err := Client{n}.GetPeers(peerID)
 		if err != nil {
 			Warning.Println("Error getting peers from "+peerID, err)
 		}

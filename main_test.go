@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/fatih/structs"
@@ -11,7 +10,7 @@ import (
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/config"
 )
 
-const testNodePath = "./data/TestNode"
+const testNodePath = "./data/TestNode/"
 
 var (
 	testNode *Node
@@ -23,37 +22,31 @@ func init() {
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
 
-	// Overwrite dbPath to use test database instead
-	dbPath = "data/testdata.db"
-
-	// Remove existing database if it exists
-	os.Remove(dbPath)
-
-	// Open connection to database
-	OpenDb()
+	// Remove testNode if it exists
+	err := RemoveContents(testNodePath)
+	if err != nil {
+		Warning.Println(err)
+	}
 
 	// Initialize Curation module
 	MyCurator.Init()
 
-	// Create testNode if not exists
-	if !Exists(testNodePath) {
-		// Need to change Addresses in order to avoid clashes with MyNode
-		addr := &config.Addresses{
-			Swarm: []string{
-				"/ip4/0.0.0.0/tcp/4002",
-				"/ip6/::/tcp/4002",
-			},
-			API:     "/ip4/127.0.0.1/tcp/5002",
-			Gateway: "/ip4/127.0.0.1/tcp/8081",
-		}
-
-		err := NewNodeRepo(testNodePath, addr)
-		if err != nil {
-			panic(err)
-		}
+	// Create testNode
+	// Need to change Addresses in order to avoid clashes with MyNode
+	addr := &config.Addresses{
+		Swarm: []string{
+			"/ip4/0.0.0.0/tcp/4002",
+			"/ip6/::/tcp/4002",
+		},
+		API:     "/ip4/127.0.0.1/tcp/5002",
+		Gateway: "/ip4/127.0.0.1/tcp/8081",
 	}
 
-	var err error
+	err = NewNodeRepo(testNodePath, addr)
+	if err != nil {
+		panic(err)
+	}
+
 	testNode, err = NewNode(testNodePath)
 	if err != nil {
 		panic(err)
@@ -83,13 +76,13 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 	postContent := "PostContent"
 	postTitle := "PostTitle"
 
-	obj, err := NewPost(testUser, postTitle, postContent)
+	obj, err := MyNode.NewPost(testUser, postTitle, postContent)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Retrieve Post", obj.Hash)
-	post, err := GetPost(obj.Hash)
+	post, err := MyNode.GetPost(obj.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -106,13 +99,13 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 
 	commentContent := "CommentContent"
 
-	obj, err = NewComment(testUser, post.Hash, post.Hash, commentContent)
+	obj, err = MyNode.NewComment(testUser, post.Hash, post.Hash, commentContent)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Retrieve Comment", obj.Hash)
-	comment, err := GetComment(obj.Hash)
+	comment, err := MyNode.GetComment(obj.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -130,7 +123,7 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 
 	fmt.Println("\n=== Try /comments")
 
-	comments, err := Client{testNode}.GetComments(MyNode.Identity.Pretty(), post.Hash)
+	comments, err := Client{testNode}.GetComments(MyNode.ID, post.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -179,7 +172,7 @@ func TestSignatureVerification(t *testing.T) {
 
 func TestGetPostsAPI(t *testing.T) {
 	fmt.Println("\n=== Try pullPost")
-	pullPostFrom(testNode.Identity.Pretty())
+	MyNode.pullPostFrom(testNode.ID)
 
 	params := make(map[string]interface{})
 	fmt.Println("Curation suggested comments:")

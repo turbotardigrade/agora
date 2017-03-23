@@ -36,9 +36,6 @@ func init() {
 }
 
 func main() {
-	OpenDb()
-	defer CloseDb()
-
 	// Initialize Curation module
 	err := MyCurator.Init()
 	if err != nil {
@@ -53,7 +50,7 @@ func main() {
 
 	if FlagPullPostsFrom != "" {
 		target := FlagPullPostsFrom
-		pullPostFrom(target)
+		MyNode.pullPostFrom(target)
 		Info.Println("Done pulling")
 
 	}

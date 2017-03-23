@@ -21,9 +21,11 @@ type Command struct {
 }
 
 // GUIAPI is simply used as namespace
-type GUIAPI struct{}
+type GUIAPI struct {
+	*Node
+}
 
-var gAPI = GUIAPI{}
+var gAPI = GUIAPI{MyNode}
 
 // cmd2func maps the command with its respective handler function
 var cmd2func = map[string]func(args map[string]interface{}) string{
@@ -90,13 +92,13 @@ func GUIHandle(cmd Command) string {
 //////////////////////////////////////////////////////////////////////
 // handler functions
 
-func (*GUIAPI) getPost(args map[string]interface{}) string {
+func (n *GUIAPI) getPost(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
 	}
 
-	post, err := GetPost(hash)
+	post, err := n.Node.GetPost(hash)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -105,13 +107,13 @@ func (*GUIAPI) getPost(args map[string]interface{}) string {
 	return string(res)
 }
 
-func (*GUIAPI) getComment(args map[string]interface{}) string {
+func (n *GUIAPI) getComment(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
 	}
 
-	comment, err := GetComment(hash)
+	comment, err := n.GetComment(hash)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -120,7 +122,7 @@ func (*GUIAPI) getComment(args map[string]interface{}) string {
 	return string(res)
 }
 
-func (*GUIAPI) postPost(args map[string]interface{}) string {
+func (n *GUIAPI) postPost(args map[string]interface{}) string {
 	content, ok := args["content"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
@@ -131,7 +133,7 @@ func (*GUIAPI) postPost(args map[string]interface{}) string {
 		return `{"error": "Argument not well formatted."}`
 	}
 
-	obj, err := NewPost(MyUser, title, content)
+	obj, err := n.NewPost(MyUser, title, content)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -139,8 +141,8 @@ func (*GUIAPI) postPost(args map[string]interface{}) string {
 	return `{"hash": "` + obj.Hash + `"}`
 }
 
-func (*GUIAPI) getPosts(args map[string]interface{}) string {
-	posts, err := GetContentPosts()
+func (n *GUIAPI) getPosts(args map[string]interface{}) string {
+	posts, err := n.GetContentPosts()
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -149,13 +151,13 @@ func (*GUIAPI) getPosts(args map[string]interface{}) string {
 	return string(js)
 }
 
-func (*GUIAPI) getCommentsFromPost(args map[string]interface{}) string {
+func (n *GUIAPI) getCommentsFromPost(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
 	}
 
-	comments, err := GetComments(hash)
+	comments, err := n.GetComments(hash)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -170,11 +172,11 @@ type postCommentArgs struct {
 	Parent  string
 }
 
-func (*GUIAPI) postComment(args map[string]interface{}) string {
+func (n *GUIAPI) postComment(args map[string]interface{}) string {
 	pArgs := postCommentArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	obj, err := NewComment(MyUser, pArgs.Post, pArgs.Parent, pArgs.Content)
+	obj, err := n.NewComment(MyUser, pArgs.Post, pArgs.Parent, pArgs.Content)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -187,11 +189,11 @@ type setPostUserDataArgs struct {
 	UserData PostUserData
 }
 
-func (*GUIAPI) setPostUserData(args map[string]interface{}) string {
+func (n *GUIAPI) setPostUserData(args map[string]interface{}) string {
 	pArgs := setPostUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	err := db.SetPostUserData(pArgs.Hash, pArgs.UserData)
+	err := n.SetPostUserData(pArgs.Hash, pArgs.UserData)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -204,11 +206,11 @@ type setCommentUserDataArgs struct {
 	UserData CommentUserData
 }
 
-func (*GUIAPI) setCommentUserData(args map[string]interface{}) string {
+func (n *GUIAPI) setCommentUserData(args map[string]interface{}) string {
 	pArgs := setCommentUserDataArgs{}
 	mapstructure.Decode(args, &pArgs)
 
-	err := db.SetCommentUserData(pArgs.Hash, pArgs.UserData)
+	err := n.SetCommentUserData(pArgs.Hash, pArgs.UserData)
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
@@ -216,7 +218,7 @@ func (*GUIAPI) setCommentUserData(args map[string]interface{}) string {
 	return `{"status": "success"}`
 }
 
-func (*GUIAPI) upvote(args map[string]interface{}) string {
+func (n *GUIAPI) upvote(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
@@ -227,7 +229,7 @@ func (*GUIAPI) upvote(args map[string]interface{}) string {
 	return `{"status": "success"}`
 }
 
-func (*GUIAPI) downvote(args map[string]interface{}) string {
+func (n *GUIAPI) downvote(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`
@@ -238,7 +240,7 @@ func (*GUIAPI) downvote(args map[string]interface{}) string {
 	return `{"status": "success"}`
 }
 
-func (*GUIAPI) flag(args map[string]interface{}) string {
+func (n *GUIAPI) flag(args map[string]interface{}) string {
 	hash, ok := args["hash"].(string)
 	if !ok {
 		return `{"error": "Argument not well formatted."}`

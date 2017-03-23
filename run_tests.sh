@@ -1,3 +1,2 @@
 #!/bin/bash
-go test -c
-./agora.test
+go test -c && ./agora.test

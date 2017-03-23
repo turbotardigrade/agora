@@ -59,7 +59,7 @@ type Comment struct {
 }
 
 // NewPost constructs a new posts and adds it to the IPFS network
-func NewPost(user *User, title, content string) (*IPFSObj, error) {
+func (n *Node) NewPost(user *User, title, content string) (*IPFSObj, error) {
 	data := Post{
 		Alias:     user.Alias,
 		Title:     title,
@@ -67,13 +67,13 @@ func NewPost(user *User, title, content string) (*IPFSObj, error) {
 		Timestamp: Now(),
 	}
 
-	obj, err := NewIPFSObj(MyNode, user, data)
+	obj, err := NewIPFSObj(n, user, data)
 	if err != nil {
 		return nil, err
 	}
 	data.Hash = obj.Hash
 
-	err = db.AddHostingNode(obj.Hash, MyNode.Identity.Pretty())
+	err = n.AddHostingNode(obj.Hash, n.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func NewPost(user *User, title, content string) (*IPFSObj, error) {
 
 // NewComment constructs a new comment and adds it to the IPFS
 // network. Note that parent == post for comments replying to posts
-func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
+func (n *Node) NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	if parent == "" || postID == "" {
 		// @TODO check if postID and parent are valid
 		return nil, errors.New("Parent and/or Post not defined")
@@ -114,7 +114,7 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 		return nil, errors.New("Curation rejected the content")
 	}
 
-	err = db.AssociateCommentWithPost(obj.Hash, postID)
+	err = n.AssociateCommentWithPost(obj.Hash, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func NewComment(user *User, postID, parent, content string) (*IPFSObj, error) {
 	return obj, nil
 }
 
-func GetPost(postID string) (*Post, error) {
+func (n *Node) GetPost(postID string) (*Post, error) {
 	// @TODO maybe only need to get POST if we haven't retrieved it yet
 	obj, err := GetIPFSObj(postID)
 	if err != nil {
@@ -135,13 +135,13 @@ func GetPost(postID string) (*Post, error) {
 	post.Hash = obj.Hash
 	post.Key = obj.Key
 
-	userData := db.GetPostUserData(postID)
+	userData := n.GetPostUserData(postID)
 	post.UserData = userData
 
 	return post, nil
 }
 
-func GetComment(commentID string) (*Comment, error) {
+func (n *Node) GetComment(commentID string) (*Comment, error) {
 	obj, err := GetIPFSObj(commentID)
 	if err != nil {
 		return nil, err
@@ -153,14 +153,14 @@ func GetComment(commentID string) (*Comment, error) {
 	comment.Hash = obj.Hash
 	comment.Key = obj.Key
 
-	userData := db.GetCommentUserData(commentID)
+	userData := n.GetCommentUserData(commentID)
 	comment.UserData = userData
 
 	return comment, nil
 }
 
-func GetComments(postID string) ([]Comment, error) {
-	commentHashes, err := db.GetPostComments(postID)
+func (n *Node) GetComments(postID string) ([]Comment, error) {
+	commentHashes, err := n.GetPostComments(postID)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func GetComments(postID string) ([]Comment, error) {
 	// @TODO @PERFORMANCE can do this concurrently
 	var comments []Comment
 	for _, h := range commentHashes {
-		comment, err := GetComment(h)
+		comment, err := n.GetComment(h)
 		if err != nil {
 			Warning.Println("Could not retrieve comment with id", h)
 			continue
@@ -180,13 +180,13 @@ func GetComments(postID string) ([]Comment, error) {
 	return comments, nil
 }
 
-func GetContentPosts() ([]Post, error) {
+func (n *Node) GetContentPosts() ([]Post, error) {
 	postHashes := MyCurator.GetContent(make(map[string]interface{}))
 
 	// @TODO @PERFORMANCE can do this concurrently
 	posts := []Post{}
 	for _, h := range postHashes {
-		post, err := GetPost(h)
+		post, err := n.GetPost(h)
 		if err != nil {
 			Warning.Println("Could not retrieve post with id", h)
 			continue
@@ -198,8 +198,8 @@ func GetContentPosts() ([]Post, error) {
 	return posts, nil
 }
 
-func GetAllPosts() ([]Post, error) {
-	postHashes, err := db.GetPosts()
+func (n *Node) GetAllPosts() ([]Post, error) {
+	postHashes, err := n.GetPosts()
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func GetAllPosts() ([]Post, error) {
 	// @TODO @PERFORMANCE can do this concurrently
 	var posts []Post
 	for _, h := range postHashes {
-		post, err := GetPost(h)
+		post, err := n.GetPost(h)
 		if err != nil {
 			Warning.Println("Could not retrieve post with id", h)
 			continue
@@ -217,5 +217,4 @@ func GetAllPosts() ([]Post, error) {
 	}
 
 	return posts, nil
-
 }

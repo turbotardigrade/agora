@@ -36,12 +36,12 @@ type GetCommentsResp struct {
 }
 
 // GetCommentsHandler provides stream handler
-func GetCommentsHandler(stream net.Stream) {
+func GetCommentsHandler(n *Node, stream net.Stream) {
 	req := GetCommentsReq{}
 	ReadJSON(stream, &req)
 
 	// @TODO lookup comments for given req.Post
-	commentHashes, err := db.GetPostComments(req.Post)
+	commentHashes, err := n.GetPostComments(req.Post)
 	if err != nil {
 		Warning.Println(err)
 	}
@@ -74,8 +74,8 @@ type GetPostsResp struct {
 }
 
 // GetPostsHandler provides stream handler
-func GetPostsHandler(stream net.Stream) {
-	posts, err := db.GetPosts()
+func GetPostsHandler(n *Node, stream net.Stream) {
+	posts, err := n.GetPosts()
 	if err != nil {
 		Warning.Println("Error retrieving list of posts: ", err)
 		return
@@ -107,7 +107,7 @@ type GetHealthResp struct {
 }
 
 // GetHealthHandler provides stream handler
-func GetHealthHandler(stream net.Stream) {
+func GetHealthHandler(n *Node, stream net.Stream) {
 	WriteJSON(stream, GetHealthResp{"OK"})
 }
 
@@ -132,8 +132,8 @@ type GetPeersResp struct {
 }
 
 // GetPeersHandler provides stream handler
-func GetPeersHandler(stream net.Stream) {
-	peers, err := db.GetPeers()
+func GetPeersHandler(n *Node, stream net.Stream) {
+	peers, err := n.GetPeers()
 
 	if err != nil {
 		Warning.Println("Error retrieving list of peers: ", err)

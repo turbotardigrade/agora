@@ -2,7 +2,6 @@ package main
 
 import (
 	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
-	"time"
 
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/corenet"
 )
@@ -21,18 +20,21 @@ func NewPeerServer(node *Node) PeerServer {
 
 // HandleFunc registers a function which get called to handle incoming
 // requests triggered on given endpoint
-func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error {
+func (p *PeerServer) HandleFunc(endpoint string, handler func(*Node, net.Stream)) error {
 	list, err := corenet.Listen(p.IpfsNode, endpoint)
 	if err != nil {
 		return err
 	}
 
-	Info.Printf("I am peer: %s and listening at %s \n", p.Identity.Pretty(), endpoint)
+	Info.Printf("I am peer: %s and listening at %s \n", p.ID, endpoint)
 
 	// listen asynchronously
 	go func() {
 		for {
-			// @TODO we might have to do this asynchronously
+			// @TODO need to handle error gracefully,
+			// e.g. tell client that an error occurred
+			// @TODO we might have to do this
+			// asynchronously
 			stream, err := list.Accept()
 			if err != nil {
 				Error.Println(err)
@@ -41,14 +43,22 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 
 			Info.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
 
-			var blacklisted bool
-			BoltGet(db.DB, blacklistBucket, p.Identity.Pretty(), blacklisted)
+			isBlacklisted, err := p.IsBlacklisted(p.ID)
+			if err != nil {
+				Error.Println(err)
+				continue
+			}
 
-			if blacklisted {
+			if isBlacklisted {
 				Info.Println("Node is blacklisted, connection will be aborted")
 			} else {
-				BoltSet(db.DB, knownNodesBucket, p.Identity.Pretty(), time.Now().UnixNano())
-				handler(stream)
+				err := p.AddKnown(p.ID)
+				if err != nil {
+					Error.Println(err)
+					continue
+				}
+
+				handler(p.Node, stream)
 			}
 
 			stream.Close()
@@ -56,12 +66,4 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(net.Stream)) error
 	}()
 
 	return nil
-}
-
-func AddNodeToBlacklist(identity string) error {
-	return BoltSet(db.DB, blacklistBucket, identity, true)
-}
-
-func RemoveNodeFromBlacklist(identity string) error {
-	return BoltDelete(db.DB, blacklistBucket, identity)
 }

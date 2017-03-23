@@ -48,14 +48,17 @@ func init() {
 // embedded type.
 type Node struct {
 	*core.IpfsNode
+	*Model
+
+	ID     string
 	cancel context.CancelFunc
 }
 
 // NewNode creates a new Node from an existing node repository
 func NewNode(path string) (*Node, error) {
-
 	// Need to increse limit for number of filedescriptors to
 	// avoid running out of those due to a lot of sockets
+	// @TODO maybe move this to init
 	err := checkAndSetUlimit()
 	if err != nil {
 		return nil, err
@@ -76,11 +79,21 @@ func NewNode(path string) (*Node, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	node, err := core.NewNode(ctx, cfg)
 	if err != nil {
+		cancel()
+		return nil, err
+	}
+
+	// Open Node's DB Instance
+	db, err := OpenDB(path + "/agora.db")
+	if err != nil {
+		cancel()
 		return nil, err
 	}
 
 	return &Node{
 		IpfsNode: node,
+		Model:    db,
+		ID:       node.Identity.Pretty(),
 		cancel:   cancel,
 	}, nil
 }

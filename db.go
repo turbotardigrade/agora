@@ -8,10 +8,6 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// Globally available variables
-var db *Model
-var dbPath = "./data/data.db"
-
 // Model is a wrapper for the DB connection, mainly to create a safe
 // namespace
 type Model struct {
@@ -39,13 +35,13 @@ var bucketNames = []string{
 //////////////////////////////////////////////////////////////////////
 /// Open and Close
 
-// OpenDb opens bolt database and provides a db Model instance
+// OpenDB opens bolt database and provides a db Model instance
 // globally
-func OpenDb() error {
+func OpenDB(path string) (*Model, error) {
 	Info.Println("Init DB")
 
 	config := &bolt.Options{Timeout: 2 * time.Second}
-	dbInstance, err := bolt.Open(dbPath, 0600, config)
+	dbInstance, err := bolt.Open(path, 0600, config)
 	if err != nil {
 		// No point of running without DB, just kill the
 		// application
@@ -53,10 +49,10 @@ func OpenDb() error {
 		log.Fatal(err)
 	}
 
-	db = &Model{dbInstance}
+	db := &Model{dbInstance}
 
 	// Create Bucket if they don't exists
-	return dbInstance.Update(func(tx *bolt.Tx) error {
+	return db, dbInstance.Update(func(tx *bolt.Tx) error {
 		for _, bucketName := range bucketNames {
 			_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 			if err != nil {
@@ -65,11 +61,6 @@ func OpenDb() error {
 		}
 		return nil
 	})
-}
-
-// CloseDb closes bolt database
-func CloseDb() {
-	db.Close()
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -125,4 +116,22 @@ func (m *Model) SetCommentUserData(hash string, data CommentUserData) error {
 
 func (m *Model) GetPeers() ([]string, error) {
 	return BoltGetKeys(m.DB, knownNodesBucket)
+}
+
+func (m *Model) AddBlacklist(identity string) error {
+	return BoltSet(m.DB, blacklistBucket, identity, true)
+}
+
+func (m *Model) RemoveBlacklist(identity string) error {
+	return BoltDelete(m.DB, blacklistBucket, identity)
+}
+
+func (m *Model) IsBlacklisted(identity string) (bool, error) {
+	var isBlacklist bool
+	err := BoltGet(m.DB, blacklistBucket, identity, &isBlacklist)
+	return isBlacklist, err
+}
+
+func (m *Model) AddKnown(identity string) error {
+	return BoltSet(m.DB, knownNodesBucket, identity, time.Now().UnixNano())
 }
