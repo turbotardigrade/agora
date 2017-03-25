@@ -56,5 +56,5 @@ func main() {
 	}
 
 	// Starts communication pipeline for GUI
-	StartGUIPipe()
+	StartGUIPipe(MyNode)
 }

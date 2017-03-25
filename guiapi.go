@@ -25,28 +25,31 @@ type GUIAPI struct {
 	*Node
 }
 
-var gAPI = GUIAPI{MyNode}
-
 // cmd2func maps the command with its respective handler function
-var cmd2func = map[string]func(args map[string]interface{}) string{
-	"getPost":             gAPI.getPost,
-	"getComment":          gAPI.getComment,
-	"getPosts":            gAPI.getPosts,
-	"postPost":            gAPI.postPost,
-	"getCommentsFromPost": gAPI.getCommentsFromPost,
-	"postComment":         gAPI.postComment,
-	"setPostUserData":     gAPI.setPostUserData,
-	"setCommentUserData":  gAPI.setCommentUserData,
-
-	"upvote":   gAPI.upvote,
-	"downvote": gAPI.downvote,
-	"flag":     gAPI.flag,
-}
+var cmd2func map[string]func(args map[string]interface{}) string
 
 // STartGUIPipe is a blocking loop providing a pipe for the GUI to
 // interact with the PeerBackend. Use EOF (CTRL+D) to gracefully close
 // the pipe
-func StartGUIPipe() {
+func StartGUIPipe(n *Node) {
+	gAPI := GUIAPI{n}
+
+	// cmd2func maps the command with its respective handler function
+	cmd2func = map[string]func(args map[string]interface{}) string{
+		"getPost":             gAPI.getPost,
+		"getComment":          gAPI.getComment,
+		"getPosts":            gAPI.getPosts,
+		"postPost":            gAPI.postPost,
+		"getCommentsFromPost": gAPI.getCommentsFromPost,
+		"postComment":         gAPI.postComment,
+		"setPostUserData":     gAPI.setPostUserData,
+		"setCommentUserData":  gAPI.setCommentUserData,
+
+		"upvote":   gAPI.upvote,
+		"downvote": gAPI.downvote,
+		"flag":     gAPI.flag,
+	}
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		var cmd Command
