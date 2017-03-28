@@ -10,18 +10,21 @@ import (
 
 var FlagPullPostsFrom string
 var FlagNoPeerServer bool
+var FlagAddPeer string
 
 func init() {
 	// Parse flags
 	silent := flag.Bool("silent", false, "Supresses all output except for stderr")
 	pullPosts := flag.String("pullPost", "", "Supresses all output except for stderr")
 	noPeer := flag.Bool("noPeer", false, "Supresses all output except for stderr")
+	addPeer := flag.String("addPeer", "", "Add a peer to the list of known nodes")
 
 	flag.Parse()
 
 	// Set Flags (important, need to be after flag.Parse()
 	FlagNoPeerServer = *noPeer
 	FlagPullPostsFrom = *pullPosts
+	FlagAddPeer = *addPeer
 
 	// Initialize Logger
 	if *silent {
@@ -54,6 +57,11 @@ func main() {
 		MyNode.pullPostFrom(target)
 		Info.Println("Done pulling")
 
+	}
+
+	if FlagAddPeer != "" {
+		peerID := FlagAddPeer
+		MyNode.AddPeer(peerID)
 	}
 
 	// Starts communication pipeline for GUI

@@ -44,7 +44,6 @@ func (n *Node) pullPostFrom(target string) {
 // DiscoverPeers gets peers from all existing peers and adds them to the DB
 func (n *Node) DiscoverPeers() (err error) {
 	myPeers, err := n.GetPeers()
-	var allPeers []string
 
 	if err != nil {
 		Warning.Println("discoverPeers", err)
