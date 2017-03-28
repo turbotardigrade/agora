@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 var FlagPullPostsFrom string
@@ -57,4 +58,19 @@ func main() {
 
 	// Starts communication pipeline for GUI
 	StartGUIPipe(MyNode)
+
+	// Discover new peers periodically
+	ticker := time.NewTicker(30 * time.Second)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				MyNode.DiscoverPeers()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }

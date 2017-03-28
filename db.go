@@ -132,6 +132,6 @@ func (m *Model) IsBlacklisted(identity string) (bool, error) {
 	return isBlacklist, err
 }
 
-func (m *Model) AddKnown(identity string) error {
-	return BoltSet(m.DB, knownNodesBucket, identity, time.Now().UnixNano())
+func (m *Model) AddPeer(identity string) error {
+	return BoltSetIfNil(m.DB, knownNodesBucket, identity, time.Now().UnixNano())
 }

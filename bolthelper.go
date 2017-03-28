@@ -55,6 +55,20 @@ func BoltSet(db *bolt.DB, bucketName, key string, obj interface{}) error {
 	})
 }
 
+func BoltSetIfNil(db *bolt.DB, bucketName, key string, obj interface{}) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(B(bucketName))
+		orig := bucket.Get(B(key))
+
+		if orig == nil {
+			data, _ := json.Marshal(obj)
+			return bucket.Put(B(key), data)
+		}
+
+		return nil
+	})
+}
+
 func BoltDelete(db *bolt.DB, bucketName, key string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(B(bucketName))
