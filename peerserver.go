@@ -52,7 +52,7 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(*Node, net.Stream)
 			if isBlacklisted {
 				Info.Println("Node is blacklisted, connection will be aborted")
 			} else {
-				err := p.AddPeer(p.ID)
+				err := p.AddPeer(stream.Conn().RemotePeer().Pretty())
 				if err != nil {
 					Error.Println(err)
 					continue
