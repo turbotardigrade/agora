@@ -3,6 +3,10 @@ language: go
 go:
   - 1.8
 
+before_install:
+  - sudo apt-get install -qq python-numpy python-scipy
+  - sudo pip install scikit-learn pyinstaller
+
 install:
   - go get -u github.com/whyrusleeping/gx
   - go get -u github.com/whyrusleeping/gx-go
@@ -12,6 +16,7 @@ install:
   - cd $TRAVIS_BUILD_DIR
   - gx install
   - go get
+  - ./travis_install.sh
 
 before_script:
   - go get -u github.com/golang/lint/golint
@@ -25,3 +30,6 @@ git:
   depth: 1 # speed up git clone
 
 sudo: required
+
+virtualenv:
+  system_site_packages: true
