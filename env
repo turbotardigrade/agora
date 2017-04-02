@@ -1,0 +1,16 @@
+####
+# Source this file for convenient aliases and functions
+#
+#  $ . env
+#
+
+function cleardb {
+    read -p "Are you sure? [y/n]" -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+	rm data/MyNode/agora.db
+    fi
+}
+
+alias browse="boltbrowser data/MyNode/agora.db"
+alias conf="emacs -nw data/MyNode/config"
