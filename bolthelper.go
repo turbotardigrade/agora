@@ -10,7 +10,7 @@ import (
 func BoltGetKeys(db *bolt.DB, bucketName string) ([]string, error) {
 	var keys []string
 	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(postHostersBucket))
+		b := tx.Bucket([]byte(bucketName))
 		b.ForEach(func(k, _ []byte) error {
 			keys = append(keys, string(k))
 			return nil
