@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"time"
 
 	peer "gx/ipfs/QmZcUPvPhD1Xvk6mwijYF8AfR3mG31S1YsEfHG4khrFPRr/go-libp2p-peer"
 
@@ -41,6 +42,28 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func monitorPeers(n *Node) {
+	go func() {
+		for {
+			printPeers(n.IpfsNode)
+			time.Sleep(2 * time.Second)
+		}
+	}()
+}
+
+func printPeers(n *core.IpfsNode) {
+	conns := n.PeerHost.Network().Conns()
+
+	Info.Println("---- PeerList")
+	for _, c := range conns {
+		pid := c.RemotePeer()
+		addr := c.RemoteMultiaddr()
+
+		Info.Println(pid, "\t", addr, "\t", n.Peerstore.LatencyEWMA(pid))
+	}
+
 }
 
 // Node provides an abstraction for IpfsNode and is the prefered way

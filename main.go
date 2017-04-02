@@ -11,6 +11,7 @@ import (
 var FlagPullPostsFrom string
 var FlagNoPeerServer bool
 var FlagAddPeer string
+var FlagMonitorPeers bool
 
 func init() {
 	// Parse flags
@@ -18,6 +19,7 @@ func init() {
 	pullPosts := flag.String("pullPost", "", "Supresses all output except for stderr")
 	noPeer := flag.Bool("noPeer", false, "Supresses all output except for stderr")
 	addPeer := flag.String("addPeer", "", "Add a peer to the list of known nodes")
+	monPeers := flag.Bool("monPeers", false, "Monitor list of peers")
 
 	flag.Parse()
 
@@ -25,6 +27,7 @@ func init() {
 	FlagNoPeerServer = *noPeer
 	FlagPullPostsFrom = *pullPosts
 	FlagAddPeer = *addPeer
+	FlagMonitorPeers = *monPeers
 
 	// Initialize Logger
 	if *silent {
@@ -50,6 +53,11 @@ func main() {
 	// Starts PeerServer (non-blocking)
 	if !FlagNoPeerServer {
 		StartPeerAPI(MyNode)
+	}
+
+	// Starts peer list monitor (non-blocking)
+	if FlagMonitorPeers {
+		go monitorPeers(MyNode)
 	}
 
 	if FlagPullPostsFrom != "" {
