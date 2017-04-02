@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -12,6 +13,7 @@ var FlagPullPostsFrom string
 var FlagNoPeerServer bool
 var FlagAddPeer string
 var FlagMonitorPeers bool
+var FlagCurator string
 
 func init() {
 	// Parse flags
@@ -20,6 +22,7 @@ func init() {
 	noPeer := flag.Bool("noPeer", false, "Supresses all output except for stderr")
 	addPeer := flag.String("addPeer", "", "Add a peer to the list of known nodes")
 	monPeers := flag.Bool("monPeers", false, "Monitor list of peers")
+	curator := flag.String("curator", "", "Specify the curation module used. Use 'none' to load dummy curator")
 
 	flag.Parse()
 
@@ -39,6 +42,15 @@ func init() {
 		LoggerInit(file, file, file, file)
 	} else {
 		LoggerInit(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	}
+
+	// Set Curator module
+	if strings.ToLower(*curator) == "none" {
+		Info.Println("Using DummyCurator")
+		MyCurator = &DummyCurator{}
+	} else {
+		Info.Println("Using MLCurator")
+		MyCurator = &MLCurator{}
 	}
 }
 
