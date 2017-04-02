@@ -33,35 +33,36 @@ func (p *PeerServer) HandleFunc(endpoint string, handler func(*Node, net.Stream)
 		for {
 			// @TODO need to handle error gracefully,
 			// e.g. tell client that an error occurred
-			// @TODO we might have to do this
-			// asynchronously
 			stream, err := list.Accept()
 			if err != nil {
 				Error.Println(err)
 				continue
 			}
 
-			Info.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
+			go func(stream net.Stream) {
+				Info.Printf("Connection from: %s\n", stream.Conn().RemotePeer().Pretty())
 
-			isBlacklisted, err := p.IsBlacklisted(p.ID)
-			if err != nil {
-				Error.Println(err)
-				continue
-			}
+				defer stream.Close()
 
-			if isBlacklisted {
-				Info.Println("Node is blacklisted, connection will be aborted")
-			} else {
-				err := p.AddPeer(stream.Conn().RemotePeer().Pretty())
+				isBlacklisted, err := p.IsBlacklisted(p.ID)
 				if err != nil {
 					Error.Println(err)
-					continue
+					return
+				}
+
+				if isBlacklisted {
+					Info.Println("Node is blacklisted, abort connection")
+					return
+				}
+
+				err = p.AddPeer(stream.Conn().RemotePeer().Pretty())
+				if err != nil {
+					Error.Println(err)
+					return
 				}
 
 				handler(p.Node, stream)
-			}
-
-			stream.Close()
+			}(stream)
 		}
 	}()
 

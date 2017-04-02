@@ -1,6 +1,9 @@
 package main
 
-import "gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
+import (
+	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
+	"time"
+)
 
 // StartPeerAPI starts PeerServer and register PeerAPI handlers which
 // will asynchronously listen for incoming requests
@@ -10,6 +13,9 @@ func StartPeerAPI(node *Node) {
 	peerAPI.HandleFunc("/posts", GetPostsHandler)
 	peerAPI.HandleFunc("/health", GetHealthHandler)
 	peerAPI.HandleFunc("/peers", GetPeersHandler)
+
+	Info.Println("Seed for 5 seconds...\n")
+	time.Sleep(5 * time.Second)
 }
 
 // Client should be used to send requests to the PeerAPI
