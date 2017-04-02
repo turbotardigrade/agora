@@ -61,7 +61,11 @@ func BoltSetIfNil(db *bolt.DB, bucketName, key string, obj interface{}) error {
 		orig := bucket.Get(B(key))
 
 		if orig == nil {
-			data, _ := json.Marshal(obj)
+			data, err := json.Marshal(obj)
+			if err != nil {
+				return err
+			}
+
 			return bucket.Put(B(key), data)
 		}
 

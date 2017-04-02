@@ -43,8 +43,9 @@ func (n *Node) pullPostFrom(target string) {
 
 // DiscoverPeers gets peers from all existing peers and adds them to the DB
 func (n *Node) DiscoverPeers() (err error) {
-	myPeers, err := n.GetPeers()
+	Info.Println("Start discovery...")
 
+	myPeers, err := n.GetPeers()
 	if err != nil {
 		Warning.Println("discoverPeers", err)
 	}
@@ -52,16 +53,16 @@ func (n *Node) DiscoverPeers() (err error) {
 	for _, peerID := range myPeers {
 		newPeers, err := Client{n}.GetPeers(peerID)
 		if err != nil {
-			Warning.Println("Error getting peers from "+peerID, err)
+			Warning.Println("Error getting peers from", peerID, err)
+			continue
 		}
 
-		Info.Println("Recieved %d peers from %s", len(newPeers), peerID)
+		Info.Println("Recieved", len(newPeers), "peers from", peerID)
 
 		for _, newPeerID := range newPeers {
 			err := n.AddPeer(newPeerID)
-
 			if err != nil {
-				Warning.Println("Error adding peer to DB"+newPeerID, err)
+				Warning.Println("Error adding peer", newPeerID, "to DB", err)
 			}
 		}
 

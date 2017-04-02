@@ -72,11 +72,8 @@ func main() {
 		MyNode.AddPeer(peerID)
 	}
 
-	// Starts communication pipeline for GUI
-	StartGUIPipe(MyNode)
-
 	// Discover new peers periodically
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	quit := make(chan struct{})
 	go func() {
 		for {
@@ -89,4 +86,7 @@ func main() {
 			}
 		}
 	}()
+
+	// Starts communication pipeline for GUI
+	StartGUIPipe(MyNode)
 }
