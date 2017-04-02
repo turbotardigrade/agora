@@ -29,7 +29,11 @@ func ReadJSON(stream net.Stream, ptr interface{}) {
 
 // WriteJSON writes provided struct as JSON into stream.
 func WriteJSON(stream net.Stream, obj interface{}) {
-	res, _ := json.Marshal(&obj)
+	res, err := json.Marshal(&obj)
+	if err != nil {
+		Error.Println(err)
+	}
+
 	stream.Write(res)
 }
 

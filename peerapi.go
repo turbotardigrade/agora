@@ -134,19 +134,17 @@ func (c Client) CheckHealth(target string) (bool, error) {
 
 // GetPeersResp defines response
 type GetPeersResp struct {
-	peers []string
+	Peers []string
 }
 
 // GetPeersHandler provides stream handler
 func GetPeersHandler(n *Node, stream net.Stream) {
 	peers, err := n.GetPeers()
-
 	if err != nil {
 		Warning.Println("Error retrieving list of peers: ", err)
 		return
 	}
-
-	WriteJSON(stream, GetPeersResp{peers})
+	WriteJSON(stream, GetPeersResp{Peers: peers})
 }
 
 // GetPeers provides helper function query peers of a node
@@ -157,5 +155,5 @@ func (c Client) GetPeers(target string) ([]string, error) {
 		return nil, err
 	}
 
-	return resp.peers, nil
+	return resp.Peers, nil
 }
