@@ -52,7 +52,7 @@ func OpenDB(path string) (*Model, error) {
 	db := &Model{dbInstance}
 
 	// Create Bucket if they don't exists
-	return db, dbInstance.Update(func(tx *bolt.Tx) error {
+	err = dbInstance.Update(func(tx *bolt.Tx) error {
 		for _, bucketName := range bucketNames {
 			_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 			if err != nil {
@@ -61,6 +61,16 @@ func OpenDB(path string) (*Model, error) {
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.AddPeer(BootstrapPeerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
 //////////////////////////////////////////////////////////////////////

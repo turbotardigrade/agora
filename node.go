@@ -23,6 +23,11 @@ const (
 
 	// nBitsForKeypair sets the strength of keypair
 	nBitsForKeypair = 2048
+
+	// BootstrapPeerID is the peer id of agora's bootstrap node
+	BootstrapPeerID = "QmdtfJBMitotUWBX5YZ6rYeaYRFu6zfXXMZP6fygEWK2iu"
+	// BootstrapMultiAddr is the ipfs address of agora's bootstrap node
+	BootstrapMultiAddr = "/ip4/54.178.171.10/tcp/4001/ipfs/" + BootstrapPeerID
 )
 
 // MyNode provides a global Node instance of user's own node
@@ -169,6 +174,22 @@ func NewNodeRepo(repoRoot string, addr *config.Addresses) error {
 	if addr != nil {
 		conf.Addresses = *addr
 	}
+
+	own, err := config.ParseBootstrapPeer(BootstrapMultiAddr)
+	if err != nil {
+		return err
+	}
+
+	defaults, err := config.DefaultBootstrapPeers()
+	if err != nil {
+		return err
+	}
+
+	bps := []config.BootstrapPeer{own}
+	bps = append(bps, defaults...)
+
+	// Add our own bootstrap node
+	conf.SetBootstrapPeers(bps)
 
 	fsrepo.Init(repoRoot, conf)
 	if err != nil {
