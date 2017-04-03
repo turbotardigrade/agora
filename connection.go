@@ -60,6 +60,11 @@ func (n *Node) DiscoverPeers() (err error) {
 		Info.Println("Received", len(newPeers), "peers from", peerID)
 
 		for _, newPeerID := range newPeers {
+			if newPeerID == n.ID {
+				// ignore self
+				continue
+			}
+
 			err := n.AddPeer(newPeerID)
 			if err != nil {
 				Warning.Println("Error adding peer", newPeerID, "to DB", err)
