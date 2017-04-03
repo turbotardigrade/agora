@@ -14,6 +14,7 @@ var FlagNoPeerServer bool
 var FlagAddPeer string
 var FlagMonitorPeers bool
 var FlagCurator string
+var FlagNoDiscovery bool
 
 func init() {
 	// Parse flags
@@ -23,6 +24,7 @@ func init() {
 	addPeer := flag.String("addPeer", "", "Add a peer to the list of known nodes")
 	monPeers := flag.Bool("monPeers", false, "Monitor list of peers")
 	curator := flag.String("curator", "", "Specify the curation module used. Use 'none' to load dummy curator")
+	noDiscovery := flag.Bool("noDiscovery", false, "Disable discovery")
 
 	flag.Parse()
 
@@ -31,6 +33,7 @@ func init() {
 	FlagPullPostsFrom = *pullPosts
 	FlagAddPeer = *addPeer
 	FlagMonitorPeers = *monPeers
+	FlagNoDiscovery = *noDiscovery
 
 	// Initialize Logger
 	if *silent {
@@ -85,19 +88,21 @@ func main() {
 	}
 
 	// Discover new peers periodically
-	ticker := time.NewTicker(5 * time.Second)
-	quit := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				MyNode.DiscoverPeers()
-			case <-quit:
-				ticker.Stop()
-				return
+	if !FlagNoDiscovery {
+		ticker := time.NewTicker(5 * time.Second)
+		quit := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					MyNode.DiscoverPeers()
+				case <-quit:
+					ticker.Stop()
+					return
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	// Starts communication pipeline for GUI
 	StartGUIPipe(MyNode)
