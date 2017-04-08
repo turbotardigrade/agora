@@ -13,5 +13,14 @@ function cleardb() {
     fi
 }
 
+function deploy() {
+    go build
+
+    rm -rf deploy/
+    mkdir deploy
+    cp -R dist deploy/
+    cp agora deploy/
+}
+
 alias browse="boltbrowser data/MyNode/agora.db"
 alias conf="emacs -nw data/MyNode/config"
