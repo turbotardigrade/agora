@@ -15,16 +15,18 @@ var FlagAddPeer string
 var FlagMonitorPeers bool
 var FlagCurator string
 var FlagNoDiscovery bool
+var FlagNoContentPull bool
 
 func init() {
 	// Parse flags
 	silent := flag.Bool("silent", false, "Supresses all output except for stderr")
-	pullPosts := flag.String("pullPost", "", "Supresses all output except for stderr")
-	noPeer := flag.Bool("noPeer", false, "Supresses all output except for stderr")
+	pullPosts := flag.String("pullPost", "", "Pull all posts from given peer")
+	noPeer := flag.Bool("noPeer", false, "Disable peerAPI server")
 	addPeer := flag.String("addPeer", "", "Add a peer to the list of known nodes")
 	monPeers := flag.Bool("monPeers", false, "Monitor list of peers")
 	curator := flag.String("curator", "", "Specify the curation module used. Use 'none' to load dummy curator")
 	noDiscovery := flag.Bool("noDiscovery", false, "Disable discovery")
+	noContentPull := flag.Bool("noPull", false, "Do not pull content from other peers")
 
 	flag.Parse()
 
@@ -34,6 +36,7 @@ func init() {
 	FlagAddPeer = *addPeer
 	FlagMonitorPeers = *monPeers
 	FlagNoDiscovery = *noDiscovery
+	FlagNoContentPull = *noContentPull
 
 	// Initialize Logger
 	if *silent {
@@ -79,7 +82,6 @@ func main() {
 		target := FlagPullPostsFrom
 		MyNode.pullPostFrom(target)
 		Info.Println("Done pulling")
-
 	}
 
 	if FlagAddPeer != "" {
@@ -100,6 +102,41 @@ func main() {
 					ticker.Stop()
 					return
 				}
+			}
+		}()
+	}
+
+	if !FlagNoContentPull {
+		go func() {
+			for {
+				time.Sleep(1 * time.Second)
+				Info.Println("Pull new content from known network")
+				peers, err := MyNode.GetPeers()
+				if err != nil {
+					Error.Println("Unable to get list of known peers", err)
+					continue
+				}
+
+				// @TODO select random n nodes to connect to
+
+				for _, p := range peers {
+					MyNode.pullPostFrom(p)
+				}
+
+				posts, err := MyNode.GetPosts()
+				if err != nil {
+					Error.Println("Unable to get list of posts", err)
+					continue
+				}
+
+				for _, p := range posts {
+					err := MyNode.pullPostComments(p)
+					if err != nil {
+						Warning.Println("Error getting comments for post", p, err)
+						continue
+					}
+				}
+
 			}
 		}()
 	}

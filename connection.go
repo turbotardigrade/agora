@@ -11,6 +11,8 @@ func (n *Node) pullPostFrom(target string) {
 	}
 
 	for _, hash := range postHashes {
+		// @TODO check if already exists
+
 		postObj, err := n.GetPost(hash)
 		if err != nil {
 			Warning.Println("PullPosts", err)
@@ -24,30 +26,58 @@ func (n *Node) pullPostFrom(target string) {
 		}
 
 		n.AddHostingNode(postObj.Hash, target)
-
-		// Get Comments from node
-		commentHashes, err := Client{n}.GetComments(target, postObj.Hash)
-
-		for _, hash := range commentHashes {
-			_, err := n.GetComments(hash)
-			if err != nil {
-				Warning.Println("PullPosts", err)
-				continue
-			} else {
-				n.AssociateCommentWithPost(hash, postObj.Hash)
-			}
-
-		}
 	}
 }
 
+func (n *Node) pullPostComments(postHash string) error {
+	// Get all hosters
+	hosters, err := n.GetHostingNodes(postHash)
+	if err != nil {
+		return err
+	}
+
+	// Get Comment hashes from hosting nodes
+	unique := make(map[string]bool)
+	for _, host := range hosters {
+		cmtHashes, err := Client{n}.GetComments(host, postHash)
+		if err != nil {
+			Warning.Println("Could not obtain comments for post", postHash, "from", host, err)
+			continue
+		}
+
+		for _, h := range cmtHashes {
+			unique[h] = true
+		}
+	}
+
+	// Retrieve content and pass to curation
+	for cmtHash := range unique {
+		cmt, err := n.GetComment(cmtHash)
+		if err != nil {
+			Warning.Println("GetComment failed for", cmtHash)
+			continue
+		}
+
+		isAccepted := MyCurator.OnCommentAdded(cmt, false)
+		if !isAccepted {
+			Info.Println("Comment", cmtHash, "classified as spam")
+			continue
+		}
+
+		n.AssociateCommentWithPost(cmtHash, postHash)
+	}
+
+	return nil
+}
+
 // DiscoverPeers gets peers from all existing peers and adds them to the DB
-func (n *Node) DiscoverPeers() (err error) {
+func (n *Node) DiscoverPeers() error {
 	Info.Println("Start discovery...")
 
 	myPeers, err := n.GetPeers()
 	if err != nil {
 		Warning.Println("discoverPeers", err)
+		return err
 	}
 
 	for _, peerID := range myPeers {
@@ -73,5 +103,21 @@ func (n *Node) DiscoverPeers() (err error) {
 
 	}
 
-	return
+	return nil
+}
+
+func (n *Node) PullPostsFromPeers() error {
+	Info.Println("Start content retrieval...")
+
+	myPeers, err := n.GetPeers()
+	if err != nil {
+		Warning.Println("discoverPeers", err)
+		return err
+	}
+
+	for _, peerID := range myPeers {
+		n.pullPostFrom(peerID)
+	}
+
+	return nil
 }
