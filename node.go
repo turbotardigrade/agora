@@ -126,10 +126,22 @@ func NewNode(path string) (*Node, error) {
 	}, nil
 }
 
+var ErrSkipBlacklisted = errors.New("Peer is blacklisted, will skip this request")
+
 // Request is the generalized method to connect to another peer and
 // send requests and receive responses. This is used by Client defined
 // in peerapi.go and should not be used directly.
-func (n *Node) Request(targetPeer string, path string, body interface{}, resp interface{}) error {
+func (n *Client) Request(targetPeer string, path string, body interface{}, resp interface{}) error {
+
+	// @TODO not the most elegant solution due to time pressure
+	isBlacklist, err := n.Node.IsBlacklisted(targetPeer)
+	if err != nil {
+		return err
+	}
+
+	if isBlacklist {
+		return ErrSkipBlacklisted
+	}
 
 	// Check if Node hash is valid
 	target, err := peer.IDB58Decode(targetPeer)
@@ -138,7 +150,7 @@ func (n *Node) Request(targetPeer string, path string, body interface{}, resp in
 	}
 
 	// Connect to targetPeer
-	stream, err := corenet.Dial(n.IpfsNode, target, path)
+	stream, err := corenet.Dial(n.Node.IpfsNode, target, path)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -20,6 +22,7 @@ const (
 	postBucket         = "postBucket"
 	blacklistBucket    = "blacklistBucket"
 	knownNodesBucket   = "knownNodesBucket"
+	spamBucket         = "spamcount"
 )
 
 // bucketNames is used to iterate through all buckets e.g. on
@@ -30,6 +33,7 @@ var bucketNames = []string{
 	postBucket,
 	blacklistBucket,
 	knownNodesBucket,
+	spamBucket,
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -129,6 +133,11 @@ func (m *Model) GetPeers() ([]string, error) {
 }
 
 func (m *Model) AddBlacklist(identity string) error {
+	err := m.RemovePeer(identity)
+	if err != nil {
+		return err
+	}
+
 	return BoltSet(m.DB, blacklistBucket, identity, true)
 }
 
@@ -143,5 +152,50 @@ func (m *Model) IsBlacklisted(identity string) (bool, error) {
 }
 
 func (m *Model) AddPeer(identity string) error {
+	if m.IsBlacklisted(identity) {
+		return errors.New("AddPeer: Skip blacklisted identity")
+	}
 	return BoltSetIfNil(m.DB, knownNodesBucket, identity, time.Now().UnixNano())
+}
+
+func (m *Model) RemovePeer(identity string) error {
+	return BoltDelete(m.DB, knownNodesBucket, identity)
+}
+
+func (m *Model) GetNumberOfPostsReceivedFromPeer(identity string) (int, error) {
+	counter := 0
+
+	err := m.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(postHostersBucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			list := []string{}
+			err := json.Unmarshal(v, &list)
+			if err != nil {
+				return err
+			}
+
+			if StringInSlice(identity, list) {
+				counter += 1
+			}
+		}
+
+		return nil
+	})
+
+	return counter, err
+}
+
+// TrackSpam associate hash of spam content with peer and returns the
+// current spam count
+func (m *Model) TrackSpam(identity, contentHash string) (int, error) {
+	spamset := make(map[string]struct{})
+	err := BoltGet(m.DB, spamBucket, identity, &spamset)
+	if err != nil {
+		return 0, err
+	}
+
+	spamset[contentHash] = struct{}{}
+	return len(spamset), BoltSet(m.DB, spamBucket, identity, spamset)
 }

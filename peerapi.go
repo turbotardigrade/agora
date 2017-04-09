@@ -63,7 +63,7 @@ func (c Client) GetComments(target, postID string) ([]string, error) {
 	var req = GetCommentsReq{postID}
 	var resp GetCommentsResp
 
-	err := c.Node.Request(target, "/comments", req, &resp)
+	err := c.Request(target, "/comments", req, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func GetPostsHandler(n *Node, stream net.Stream) {
 // Comments API
 func (c Client) GetPosts(target string) ([]string, error) {
 	var resp GetPostsResp
-	err := c.Node.Request(target, "/posts", nil, &resp)
+	err := c.Request(target, "/posts", nil, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func GetHealthHandler(n *Node, stream net.Stream) {
 // Health API
 func (c Client) CheckHealth(target string) (bool, error) {
 	var resp GetHealthResp
-	err := c.Node.Request(target, "/health", nil, &resp)
+	err := c.Request(target, "/health", nil, &resp)
 	if err != nil {
 		return false, err
 	}
@@ -150,7 +150,7 @@ func GetPeersHandler(n *Node, stream net.Stream) {
 // GetPeers provides helper function query peers of a node
 func (c Client) GetPeers(target string) ([]string, error) {
 	var resp GetPeersResp
-	err := c.Node.Request(target, "/peers", nil, &resp)
+	err := c.Request(target, "/peers", nil, &resp)
 	if err != nil {
 		return nil, err
 	}

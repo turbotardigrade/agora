@@ -69,6 +69,87 @@ func init() {
 	fmt.Println("------------------------------------------------------------")
 }
 
+func TestBlacklistThroughCuration(t *testing.T) {
+
+	// Prepare fake post and fake peer
+	peerID := "RANDOMPEERID"
+	postID := "RANDOMPOSTID"
+	err := testNode.AddPeer(peerID)
+	if err != nil {
+		t.Error("Should be able to add new Peer")
+	}
+
+	err = testNode.AddHostingNode(postID, peerID)
+	if err != nil {
+		t.Error("Should be able to add Hosting Node")
+	}
+
+	// Remove from blacklist just in case it's in there already
+	err = testNode.RemoveBlacklist(peerID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// Report the same spam 20 times (should only report it as one)
+	for i := 0; i < 20; i++ {
+		testNode.onSpam(peerID, postID)
+	}
+
+	isBlacklist, err := testNode.IsBlacklisted(peerID)
+	if err != nil {
+		t.Error("Should be able to check Blacklist")
+	}
+
+	if isBlacklist {
+		t.Error("Peer should not be blacklisted, because only one posts has been reported ( but repeatedly)")
+	}
+
+	// Add 5 more unique spam elements, which should be still
+	// under the blacklist threshold
+	for i := 0; i < 5; i++ {
+		testNode.onSpam(peerID, string(i))
+	}
+
+	isBlacklist, err = testNode.IsBlacklisted(peerID)
+	if err != nil {
+		t.Error("Should be able to check Blacklist")
+	}
+
+	if isBlacklist {
+		t.Error("Peer should not be blacklisted, because only one posts has been reported ( but repeatedly)")
+	}
+
+	// Add 5 more, now it should be blacklisted
+	for i := 0; i < 5; i++ {
+		testNode.onSpam(peerID, string(i+10))
+	}
+
+	isBlacklist, err = testNode.IsBlacklisted(peerID)
+	if err != nil {
+		t.Error("Should be able to check Blacklist")
+	}
+
+	if !isBlacklist {
+		t.Error("Peer should be blacklisted by now")
+	}
+
+	// Check if peer was removed by knownHosts
+	peers, err := testNode.GetPeers()
+	if err != nil {
+		t.Error("GetPeers should not error")
+	}
+
+	if StringInSlice(peerID, peers) {
+		t.Error("Should be removed")
+	}
+
+	// Check if peer connection gets rejected
+	_, err = Client{testNode}.CheckHealth(peerID)
+	if err != ErrSkipBlacklisted {
+		t.Error("Should skip this request, since node is blacklisted")
+	}
+}
+
 func TestPostCommentCreationAndRetrival(t *testing.T) {
 	fmt.Println("\n=== Try NewPost and GetPost")
 	fmt.Println("Create new Post")
