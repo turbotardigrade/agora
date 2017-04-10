@@ -111,7 +111,7 @@ func main() {
 			for {
 				time.Sleep(1 * time.Second)
 				Info.Println("Pull new content from known network")
-				peers, err := MyNode.GetPeers()
+				peers, err := MyNode.GetSomePeers()
 				if err != nil {
 					Error.Println("Unable to get list of known peers", err)
 					continue
@@ -120,6 +120,7 @@ func main() {
 				// @TODO select random n nodes to connect to
 
 				for _, p := range peers {
+					Info.Println("Pull content from", p)
 					MyNode.pullPostFrom(p)
 				}
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +15,10 @@ import (
 
 	"gx/ipfs/QmRuZnMorqodado1yeTQiv1i9rmtKj29CjPSsBKM7DFXV4/go-libp2p-net"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // B converts string to byte, just a helper for less typing...
 func B(obj string) []byte {
@@ -120,6 +125,23 @@ func Now() string {
 	return strconv.FormatInt(time.Now().Unix(), 10)
 }
 
+// RandomStringsFromArray picks n elements form an array. Caution: This
+// function changes the order of the input array. Returns all if n is
+// larger than array size
+func RandomStringsFromArray(list []string, n int) ([]string, error) {
+	if n >= len(list) {
+		return list, nil
+	}
+
+	for i := 0; i < n; i++ {
+		randpos := rand.Intn(len(list))
+		list[i], list[randpos] = list[randpos], list[i]
+	}
+
+	return list[0:n], nil
+}
+
+// RemoveContents deletes a folder at given dir path and its content
 func RemoveContents(dir string) error {
 	d, err := os.Open(dir)
 	if err != nil {

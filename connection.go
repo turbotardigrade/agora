@@ -4,7 +4,7 @@ package main
 func (n *Node) DiscoverPeers() error {
 	Info.Println("Start discovery...")
 
-	myPeers, err := n.GetPeers()
+	myPeers, err := n.GetSomePeers()
 	if err != nil {
 		Warning.Println("discoverPeers", err)
 		return err

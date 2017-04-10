@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -132,6 +131,20 @@ func (m *Model) GetPeers() ([]string, error) {
 	return BoltGetKeys(m.DB, knownNodesBucket)
 }
 
+func (m *Model) GetSomePeers() ([]string, error) {
+	peers, err := BoltGetKeys(m.DB, knownNodesBucket)
+	if err != nil {
+		return nil, err
+	}
+
+	somePeers, err := RandomStringsFromArray(peers, 3)
+	if err != nil {
+		return nil, err
+	}
+
+	return somePeers, nil
+}
+
 func (m *Model) AddBlacklist(identity string) error {
 	err := m.RemovePeer(identity)
 	if err != nil {
@@ -152,9 +165,16 @@ func (m *Model) IsBlacklisted(identity string) (bool, error) {
 }
 
 func (m *Model) AddPeer(identity string) error {
-	if m.IsBlacklisted(identity) {
-		return errors.New("AddPeer: Skip blacklisted identity")
+	isBlacklist, err := m.IsBlacklisted(identity)
+	if err != nil {
+		return err
 	}
+
+	if isBlacklist {
+		Info.Println("AddPeer: Skip blacklisted identity")
+		return nil
+	}
+
 	return BoltSetIfNil(m.DB, knownNodesBucket, identity, time.Now().UnixNano())
 }
 
