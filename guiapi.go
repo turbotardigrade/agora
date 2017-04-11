@@ -11,6 +11,7 @@ import (
 )
 
 const GUIAPITimeout = 60 * time.Second
+const MaxBufSize = 1024 * 1024
 
 // Command defines the general structure how the GUI sends commands to the PeerBackend
 // In JSON it looks like this:
@@ -51,6 +52,7 @@ func StartGUIPipe(n *Node) {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Buffer(make([]byte, MaxBufSize), MaxBufSize)
 	for scanner.Scan() {
 		var cmd Command
 		input := scanner.Text()
