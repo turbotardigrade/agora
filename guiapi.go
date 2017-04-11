@@ -1,12 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
+	"io"
 	"time"
-
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -33,6 +32,7 @@ var cmd2func map[string]func(args map[string]interface{}) string
 // interact with the PeerBackend. Use EOF (CTRL+D) to gracefully close
 // the pipe
 func StartGUIPipe(n *Node) {
+
 	gAPI := GUIAPI{n}
 
 	// cmd2func maps the command with its respective handler function
@@ -51,18 +51,19 @@ func StartGUIPipe(n *Node) {
 		"flag":     gAPI.flag,
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Buffer(make([]byte, MaxBufSize), MaxBufSize)
-	for scanner.Scan() {
-		var cmd Command
-		input := scanner.Text()
+	decoder := json.NewDecoder(os.Stdin)
 
-		err := json.Unmarshal([]byte(input), &cmd)
+	for {
+		var cmd Command
+		err := decoder.Decode(&cmd)
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
 			fmt.Println(`{"error": "JSON object not well formed."}`)
+			Info.Println(err)
 			continue
 		}
-
 		resp := GUIHandle(cmd)
 
 		// This ensures that we always return something as response
@@ -72,6 +73,7 @@ func StartGUIPipe(n *Node) {
 			fmt.Println(resp)
 		}
 	}
+	Info.Println("done")
 }
 
 func GUIHandle(cmd Command) string {
