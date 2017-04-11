@@ -141,6 +141,24 @@ func RandomStringsFromArray(list []string, n int) ([]string, error) {
 	return list[0:n], nil
 }
 
+// CreateFileIfNotExists creates file iff file doesn't exists already
+func CreateFileIfNotExists(path string) error {
+	// detect if file exists
+	var _, err = os.Stat(path)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		return nil
+	}
+
+	return err
+}
+
 // RemoveContents deletes a folder at given dir path and its content
 func RemoveContents(dir string) error {
 	d, err := os.Open(dir)

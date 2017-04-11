@@ -172,7 +172,10 @@ func (n *Client) Request(targetPeer string, path string, body interface{}, resp 
 // NewNodeRepo will create a new data and configuration folder for a
 // new IPFS node at the provided location
 func NewNodeRepo(repoRoot string, addr *config.Addresses) error {
-	os.MkdirAll(repoRoot, 0755)
+	err := os.MkdirAll(repoRoot, 0755)
+	if err != nil {
+		return err
+	}
 
 	if fsrepo.IsInitialized(repoRoot) {
 		return errors.New("Repo already exists")

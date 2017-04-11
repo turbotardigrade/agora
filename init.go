@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	flags "github.com/jessevdk/go-flags"
 )
@@ -24,21 +25,36 @@ var opts struct {
 	Curator string `short:"c" long:"curator" description:"Specify the curation module used. Use 'none' to load dummy curator"`
 }
 
+const LogDirPath = "./data"
+
 func init() {
 	_, err := flags.ParseArgs(&opts, os.Args)
 	if err != nil {
-		log.Println(err)
-		panic(err)
-		os.Exit(1)
+		log.Fatalln("Failed to parse args", err)
 	}
 
 	// Initialize Logger
 	if opts.Silent {
 		// If --silent is set log to a file instead
-		file, err := os.OpenFile("data/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		logPath := LogDirPath + "/log.txt"
+		err := os.MkdirAll(LogDirPath, 0755)
 		if err != nil {
-			log.Fatalln("Failed to open log file")
+			log.Fatalln("Failed to create log directory", err)
 		}
+
+		err = CreateFileIfNotExists(logPath)
+		if err != nil {
+			log.Fatalln("Failed to create file", err)
+		}
+
+		file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalln("Failed to open log file", err)
+		}
+
+		file.WriteString("----------------------------------------\n")
+		file.WriteString("   Log of " + time.Now().Format("Jan _2 15:04") + "\n")
+		file.WriteString("----------------------------------------\n")
 		LoggerInit(file, file, file, file)
 	} else {
 		LoggerInit(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
