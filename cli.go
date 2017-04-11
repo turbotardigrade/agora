@@ -12,15 +12,31 @@ func HandleCmdIfCLI() {
 	// Add Known peers
 	if len(opts.AddPeers) != 0 {
 		isCLI = true
+
 		for _, p := range opts.AddPeers {
 			Info.Println("Add peer with id", p)
-			MyNode.AddPeer(p)
+			err := MyNode.AddPeer(p)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	// Delete all known peers
+	if opts.DeletePeers {
+		isCLI = true
+
+		Info.Println("Remove all known peers")
+		err := MyNode.RemoveAllPeers()
+		if err != nil {
+			panic(err)
 		}
 	}
 
 	// Pull all posts from a given node
 	if opts.PullPosts != "" {
 		isCLI = true
+
 		Info.Println("Pull all posts form peer", opts.PullPosts)
 		MyNode.pullPostFrom(opts.PullPosts)
 		Info.Println("Done pulling")

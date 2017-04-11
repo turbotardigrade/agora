@@ -182,6 +182,18 @@ func (m *Model) RemovePeer(identity string) error {
 	return BoltDelete(m.DB, knownNodesBucket, identity)
 }
 
+func (m *Model) RemoveAllPeers() error {
+	return m.DB.Update(func(tx *bolt.Tx) error {
+		err := tx.DeleteBucket(B(knownNodesBucket))
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.CreateBucket(B(knownNodesBucket))
+		return err
+	})
+}
+
 func (m *Model) GetNumberOfPostsReceivedFromPeer(identity string) (int, error) {
 	counter := 0
 

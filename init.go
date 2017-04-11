@@ -17,8 +17,9 @@ var opts struct {
 	MonPeers   bool `long:"monPeers" description:"Monitor list of peers"`
 
 	// CLIs
-	AddPeers  []string `short:"a" long:"addPeer" description:"Add peer to known nodes"`
-	PullPosts string   `long:"pullPosts" description:"Pulls all posts from remote node"`
+	AddPeers    []string `short:"a" long:"addPeer" description:"Add peer to known nodes"`
+	PullPosts   string   `long:"pullPosts" description:"Pulls all posts from remote node"`
+	DeletePeers bool     `long:"deleteAllPeers" description:"Deletes all known peers"`
 
 	Curator string `short:"c" long:"curator" description:"Specify the curation module used. Use 'none' to load dummy curator"`
 }
