@@ -10,11 +10,14 @@ import (
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/config"
 )
 
-const testNodePath = "./data/TestNode/"
+const testNode1Path = "./data/TestNode1/"
+const testNode2Path = "./data/TestNode2/"
 
 var (
-	testNode *Node
-	testUser *User
+	testNode1 *Node
+	testUser1 *User
+	testNode2 *Node
+	testUser2 *User
 )
 
 func init() {
@@ -22,8 +25,12 @@ func init() {
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
 
-	// Remove testNode if it exists
-	err := RemoveContents(testNodePath)
+	// Remove testNodes they exists
+	err := RemoveContents(testNode1Path)
+	if err != nil {
+		Warning.Println(err)
+	}
+	err = RemoveContents(testNode2Path)
 	if err != nil {
 		Warning.Println(err)
 	}
@@ -31,34 +38,50 @@ func init() {
 	// Initialize Curation module
 	MyCurator.Init()
 
-	// Create testNode
-	// Need to change Addresses in order to avoid clashes with MyNode
+	// Create testNode1
+	err = NewNodeRepo(testNode1Path, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	testNode1, err = NewNode(testNode1Path)
+	if err != nil {
+		panic(err)
+	}
+
+	testUser1, err = NewUser("tester1")
+	if err != nil {
+		panic(err)
+	}
+
+	// Create testNode2
+	// Need to change Addresses in order to avoid clashes
 	addr := &config.Addresses{
 		Swarm: []string{
-			"/ip4/0.0.0.0/tcp/4002",
-			"/ip6/::/tcp/4002",
+			"/ip4/0.0.0.0/tcp/4003",
+			"/ip6/::/tcp/4003",
 		},
-		API:     "/ip4/127.0.0.1/tcp/5002",
-		Gateway: "/ip4/127.0.0.1/tcp/8081",
+		API:     "/ip4/127.0.0.1/tcp/5003",
+		Gateway: "/ip4/127.0.0.1/tcp/8082",
 	}
 
-	err = NewNodeRepo(testNodePath, addr)
+	err = NewNodeRepo(testNode2Path, addr)
 	if err != nil {
 		panic(err)
 	}
 
-	testNode, err = NewNode(testNodePath)
+	testNode2, err = NewNode(testNode2Path)
 	if err != nil {
 		panic(err)
 	}
 
-	testUser, err = NewUser("tester")
+	testUser2, err = NewUser("tester2")
 	if err != nil {
 		panic(err)
 	}
 
 	// Start PeerAPIs
-	StartPeerAPI(MyNode)
+	StartPeerAPI(testNode2)
 
 	// Might need to give some time for peerAPI info to propagate
 	// through IPFS network
@@ -74,28 +97,28 @@ func TestBlacklistThroughCuration(t *testing.T) {
 	// Prepare fake post and fake peer
 	peerID := "RANDOMPEERID"
 	postID := "RANDOMPOSTID"
-	err := testNode.AddPeer(peerID)
+	err := testNode1.AddPeer(peerID)
 	if err != nil {
 		t.Error("Should be able to add new Peer")
 	}
 
-	err = testNode.AddHostingNode(postID, peerID)
+	err = testNode1.AddHostingNode(postID, peerID)
 	if err != nil {
 		t.Error("Should be able to add Hosting Node")
 	}
 
 	// Remove from blacklist just in case it's in there already
-	err = testNode.RemoveBlacklist(peerID)
+	err = testNode1.RemoveBlacklist(peerID)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	// Report the same spam 20 times (should only report it as one)
 	for i := 0; i < 20; i++ {
-		testNode.onSpam(peerID, postID)
+		testNode1.onSpam(peerID, postID)
 	}
 
-	isBlacklist, err := testNode.IsBlacklisted(peerID)
+	isBlacklist, err := testNode1.IsBlacklisted(peerID)
 	if err != nil {
 		t.Error("Should be able to check Blacklist")
 	}
@@ -107,10 +130,10 @@ func TestBlacklistThroughCuration(t *testing.T) {
 	// Add 5 more unique spam elements, which should be still
 	// under the blacklist threshold
 	for i := 0; i < 5; i++ {
-		testNode.onSpam(peerID, string(i))
+		testNode1.onSpam(peerID, string(i))
 	}
 
-	isBlacklist, err = testNode.IsBlacklisted(peerID)
+	isBlacklist, err = testNode1.IsBlacklisted(peerID)
 	if err != nil {
 		t.Error("Should be able to check Blacklist")
 	}
@@ -121,10 +144,10 @@ func TestBlacklistThroughCuration(t *testing.T) {
 
 	// Add 5 more, now it should be blacklisted
 	for i := 0; i < 5; i++ {
-		testNode.onSpam(peerID, string(i+10))
+		testNode1.onSpam(peerID, string(i+10))
 	}
 
-	isBlacklist, err = testNode.IsBlacklisted(peerID)
+	isBlacklist, err = testNode1.IsBlacklisted(peerID)
 	if err != nil {
 		t.Error("Should be able to check Blacklist")
 	}
@@ -134,7 +157,7 @@ func TestBlacklistThroughCuration(t *testing.T) {
 	}
 
 	// Check if peer was removed by knownHosts
-	peers, err := testNode.GetPeers()
+	peers, err := testNode1.GetPeers()
 	if err != nil {
 		t.Error("GetPeers should not error")
 	}
@@ -144,7 +167,7 @@ func TestBlacklistThroughCuration(t *testing.T) {
 	}
 
 	// Check if peer connection gets rejected
-	_, err = Client{testNode}.CheckHealth(peerID)
+	_, err = Client{testNode1}.CheckHealth(peerID)
 	if err != ErrSkipBlacklisted {
 		t.Error("Should skip this request, since node is blacklisted")
 	}
@@ -157,13 +180,13 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 	postContent := "PostContent"
 	postTitle := "PostTitle"
 
-	obj, err := MyNode.NewPost(testUser, postTitle, postContent)
+	obj, err := testNode2.NewPost(testUser1, postTitle, postContent)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Retrieve Post", obj.Hash)
-	post, err := MyNode.GetPost(obj.Hash)
+	post, err := testNode2.GetPost(obj.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -180,13 +203,13 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 
 	commentContent := "CommentContent"
 
-	obj, err = MyNode.NewComment(testUser, post.Hash, post.Hash, commentContent)
+	obj, err = testNode2.NewComment(testUser1, post.Hash, post.Hash, commentContent)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Retrieve Comment", obj.Hash)
-	comment, err := MyNode.GetComment(obj.Hash)
+	comment, err := testNode2.GetComment(obj.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -204,7 +227,7 @@ func TestPostCommentCreationAndRetrival(t *testing.T) {
 
 	fmt.Println("\n=== Try /comments")
 
-	comments, err := Client{testNode}.GetComments(MyNode.ID, post.Hash)
+	comments, err := Client{testNode1}.GetComments(testNode2.ID, post.Hash)
 	if err != nil {
 		panic(err)
 	}
@@ -240,7 +263,7 @@ func TestSignatureVerification(t *testing.T) {
 	obj.Data["Content"] = "riggedContent"
 
 	// Add to IPFS Node Repository
-	hash, err := coreunix.Add(MyNode.IpfsNode, ToJSONReader(obj))
+	hash, err := coreunix.Add(testNode2.IpfsNode, ToJSONReader(obj))
 	if err != nil {
 		panic(err)
 	}
@@ -253,7 +276,7 @@ func TestSignatureVerification(t *testing.T) {
 
 func TestGetPostsAPI(t *testing.T) {
 	fmt.Println("\n=== Try pullPost")
-	MyNode.pullPostFrom(testNode.ID)
+	testNode2.pullPostFrom(testNode1.ID)
 
 	params := make(map[string]interface{})
 	fmt.Println("Curation suggested comments:")
@@ -263,7 +286,7 @@ func TestGetPostsAPI(t *testing.T) {
 func TestHealthAPI(t *testing.T) {
 	fmt.Println("\n=== Try /health")
 
-	isHealthy, err := Client{testNode}.CheckHealth(MyNode.Identity.Pretty())
+	isHealthy, err := Client{testNode1}.CheckHealth(testNode2.Identity.Pretty())
 	if err != nil {
 		panic(err)
 	}
