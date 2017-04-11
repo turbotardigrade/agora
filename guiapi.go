@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"io"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -51,13 +51,18 @@ func StartGUIPipe(n *Node) {
 		"flag":     gAPI.flag,
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Buffer(make([]byte, MaxBufSize), MaxBufSize)
-	for scanner.Scan() {
+	reader := bufio.NewReader(os.Stdin)
+	for {
 		var cmd Command
-		input := scanner.Text()
-
-		err := json.Unmarshal([]byte(input), &cmd)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(`{"error": "JSON object not well formed."}`)
+			continue
+		}
+		err = json.Unmarshal([]byte(input), &cmd)
 		if err != nil {
 			fmt.Println(`{"error": "JSON object not well formed."}`)
 			continue
