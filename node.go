@@ -19,7 +19,7 @@ const (
 	// MyNodePath specifies the path where the node repository
 	// (containing data and configuration) of the default node
 	// used by the application is stored
-	MyNodePath = "./data/MyNode"
+	MyNodePath = "/data/MyNode"
 
 	// nBitsForKeypair sets the strength of keypair
 	nBitsForKeypair = 2048

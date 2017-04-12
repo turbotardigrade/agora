@@ -68,6 +68,9 @@ func GetIPFSObj(hash string) (*IPFSObj, error) {
 
 	obj := &IPFSObj{}
 	err = FromJSONReader(r, obj)
+	if err != nil {
+		return nil, err
+	}
 
 	ok, err := Verify(obj)
 	if err != nil {

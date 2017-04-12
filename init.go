@@ -16,6 +16,7 @@ var opts struct {
 	NoPull     bool `long:"noPull" description:"Do not pull content from other peers"`
 	NoDiscover bool `long:"noDiscover" description:"Disable discovery"`
 	MonPeers   bool `long:"monPeers" description:"Monitor list of peers"`
+	NoComments bool `long:"noComments" description:"Disable automatic content pull of comments"`
 
 	// CLIs
 	AddPeers    []string `short:"a" long:"addPeer" description:"Add peer to known nodes"`

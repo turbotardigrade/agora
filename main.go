@@ -53,7 +53,7 @@ func main() {
 	} else {
 		go func() {
 			for {
-				time.Sleep(1 * time.Second)
+				time.Sleep(3 * time.Second)
 				Info.Println("Pull new content from known network")
 				peers, err := MyNode.GetSomePeers()
 				if err != nil {
@@ -66,20 +66,23 @@ func main() {
 					MyNode.pullPostFrom(p)
 				}
 
-				posts, err := MyNode.GetPosts()
-				if err != nil {
-					Error.Println("Unable to get list of posts", err)
-					continue
-				}
-
-				for _, p := range posts {
-					err := MyNode.pullPostComments(p)
+				if !opts.NoComments {
+					// @TODO better to not check all at once
+					posts, err := MyNode.GetPosts()
 					if err != nil {
-						Warning.Println("Error getting comments for post", p, err)
+						Error.Println("Unable to get list of posts", err)
 						continue
 					}
-				}
 
+					for _, p := range posts {
+						err := MyNode.pullPostComments(p)
+						if err != nil {
+							Warning.Println("Error getting comments for post", p, err)
+							continue
+						}
+					}
+
+				}
 			}
 		}()
 	}
