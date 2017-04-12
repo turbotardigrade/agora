@@ -22,6 +22,7 @@ var opts struct {
 	AddPeers    []string `short:"a" long:"addPeer" description:"Add peer to known nodes"`
 	PullPosts   string   `long:"pullPosts" description:"Pulls all posts from remote node"`
 	DeletePeers bool     `long:"deleteAllPeers" description:"Deletes all known peers"`
+	Initt       bool     `long:"init" description:"Creates ipfs repo if not exists"`
 
 	Curator string `short:"c" long:"curator" description:"Specify the curation module used. Use 'none' to load dummy curator"`
 }

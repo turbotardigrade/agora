@@ -33,6 +33,12 @@ func HandleCmdIfCLI() {
 		}
 	}
 
+	if opts.Initt {
+		isCLI = true
+
+		Info.Println("Node initialized as", MyNode.ID)
+	}
+
 	// Pull all posts from a given node
 	if opts.PullPosts != "" {
 		isCLI = true
