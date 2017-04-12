@@ -18,7 +18,7 @@ user.go       - User management
 # Build
 
 ## Dependencies
-*Note* that you need at least *go1.7* to run this project.
+*Note* that you need at least *go1.8* to run this project.
 
 ### Get IPFS from source and install it:
 Steps summarized from [here](go get -u -d github.com/ipfs/go-ipfs).
