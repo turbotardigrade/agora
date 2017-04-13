@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -230,4 +231,76 @@ func (m *Model) TrackSpam(identity, contentHash string) (int, error) {
 
 	spamset[contentHash] = struct{}{}
 	return len(spamset), BoltSet(m.DB, spamBucket, identity, spamset)
+}
+
+func (m *Model) GetSpamCounts() (map[string]int, error) {
+	counts := make(map[string]int)
+
+	err := m.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(spamBucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			list := []string{}
+			err := json.Unmarshal(v, &list)
+			if err != nil {
+				return err
+			}
+
+			counts[string(k)] = len(list)
+		}
+
+		return nil
+	})
+
+	return counts, err
+}
+
+func (m *Model) GetBlacklist() (map[string]int, error) {
+	counts := make(map[string]int)
+
+	err := m.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blacklistBucket))
+		c := b.Cursor()
+
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			identity := string(k)
+
+			spamset := make(map[string]struct{})
+			err := BoltGet(m.DB, spamBucket, identity, &spamset)
+			if err != nil {
+				return err
+			}
+
+			counts[string(k)] = len(spamset)
+			Info.Println("Spamset count of", identity, "is", len(spamset))
+		}
+
+		return nil
+	})
+
+	return counts, err
+}
+
+func (m *Model) GetLeastSpamBlacklisted() (string, error) {
+	counts, err := m.GetBlacklist()
+	if err != nil {
+		return "", err
+	}
+
+	if len(counts) == 0 {
+		return "", errors.New("Blacklist is empty")
+	}
+
+	min := 2147483647 // maxint
+	peer := ""
+
+	for k, v := range counts {
+		if v < min {
+			min = v
+			peer = string(k)
+		}
+	}
+
+	return peer, nil
 }

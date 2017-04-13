@@ -143,11 +143,44 @@ func (n *Node) onSpam(peer, contentHash string) {
 
 	// Minimum spam threshold (need at least that many to be
 	// considered for blacklist)
-	if spamCount < 10 {
+	if spamCount < 15 {
 		return
 	}
 
-	if float32(spamCount)/float32(postCount) > 0.3 {
+	// Ratio threshold until spammer gets dumped
+	spamRatio := float32(spamCount) / float32(postCount)
+	if spamRatio > 0.3 {
+		Info.Println("Blacklist peer", peer, "due to bad spam ratio", spamRatio)
 		n.AddBlacklist(peer)
 	}
+
+	peers, err := n.GetPeers()
+	if err != nil {
+		Error.Println("Unable to get peers:", err)
+		return
+	}
+
+	if len(peers) >= 3 {
+		return
+	}
+
+	Info.Println("Number of peers low, try to optimistically unchoke")
+
+	candidate, err := n.GetLeastSpamBlacklisted()
+	if err != nil {
+		Error.Println("Unable to get candidate to unchoke:", err)
+		return
+	}
+
+	err = n.RemoveBlacklist(candidate)
+	if err != nil {
+		Error.Println("Cannot remove blacklist")
+	}
+
+	err = n.AddPeer(candidate)
+	if err != nil {
+		Error.Println("Cannot add peer to peer list")
+	}
+
+	Info.Println("Optimistically unchoke previously blacklisted node", candidate)
 }
