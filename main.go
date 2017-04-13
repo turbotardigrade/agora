@@ -5,10 +5,6 @@ import (
 )
 
 func main() {
-	// Checks if agora is running in CLI mode and executes cmds
-	// accordingly
-	HandleCmdIfCLI()
-
 	var err error
 	MyNode, err = CreateNodeIfNotExists(MyNodePath)
 	if err != nil {
@@ -19,6 +15,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Checks if agora is running in CLI mode and executes cmds
+	// accordingly
+	HandleCmdIfCLI()
 
 	// Initialize Curation module
 	err = MyCurator.Init()
