@@ -10,42 +10,9 @@ import (
 )
 
 const (
-	// MyNodePath specifies the path where the node repository
-	// (containing data and configuration) of the default node
-	// used by the application is stored
-	MyUserConfPath = "./data/me.json"
-
 	// nBitsForKeypair sets the strength of keypair
 	nBitsForUserKeypair = 2048
 )
-
-var MyUser *User
-
-func init() {
-	var err error
-	if !Exists(MyUserConfPath) {
-		MyUser, err = NewUser("DefaultBob")
-		if err != nil {
-			log.Fatal("Cannot generate new User identity", err)
-		}
-
-		userConfJSON, _ := json.MarshalIndent(MyUser, "", "   ")
-		err = ioutil.WriteFile(MyUserConfPath, userConfJSON, 0644)
-
-		if err != nil {
-			log.Fatal("Cannot write new UserConf to disk", err)
-		}
-	}
-
-	file, err := ioutil.ReadFile(MyUserConfPath)
-	if err != nil {
-		log.Fatal("Cannot read user config", err)
-	}
-
-	var user User
-	json.Unmarshal(file, &user)
-	MyUser = &user
-}
 
 type User struct {
 	PubKeyRaw  string
@@ -104,4 +71,32 @@ func NewUser(alias string) (*User, error) {
 	}
 
 	return u, nil
+}
+
+func CreateUserIfNotExists(path, alias string) (*User, error) {
+	if !Exists(path) {
+		user, err := NewUser("DefaultBob")
+		if err != nil {
+			log.Fatal("Cannot generate new User identity", err)
+		}
+
+		userConfJSON, _ := json.MarshalIndent(user, "", "   ")
+		err = ioutil.WriteFile(MyUserConfPath, userConfJSON, 0644)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatal("Cannot read user config", err)
+	}
+
+	var user User
+	err = json.Unmarshal(file, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

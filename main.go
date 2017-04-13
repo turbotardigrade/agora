@@ -9,8 +9,19 @@ func main() {
 	// accordingly
 	HandleCmdIfCLI()
 
+	var err error
+	MyNode, err = CreateNodeIfNotExists(MyNodePath)
+	if err != nil {
+		panic(err)
+	}
+
+	MyUser, err = CreateUserIfNotExists(MyUserConfPath, "DefaultBob")
+	if err != nil {
+		panic(err)
+	}
+
 	// Initialize Curation module
-	err := MyCurator.Init()
+	err = MyCurator.Init()
 	if err != nil {
 		panic(err)
 	}
@@ -51,6 +62,7 @@ func main() {
 	if opts.NoPull {
 		Info.Println("Content pull disabled")
 	} else {
+		time.Sleep(5 * time.Second)
 		go func() {
 			for {
 				time.Sleep(3 * time.Second)

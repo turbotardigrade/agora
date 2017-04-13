@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/fatih/structs"
@@ -9,9 +10,6 @@ import (
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/core/coreunix"
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/config"
 )
-
-const testNode1Path = "./data/TestNode1/"
-const testNode2Path = "./data/TestNode2/"
 
 var (
 	testNode1 *Node
@@ -25,12 +23,22 @@ func init() {
 	fmt.Println("Initialize tests")
 	fmt.Println("------------------------------------------------------------")
 
+	// Init paths
+	basePath := ExecutionPath + "/data/"
+	testNode1Path := basePath + "TestNode1/"
+	testNode2Path := basePath + "TestNode2/"
+
 	// Remove testNodes they exists
 	err := RemoveContents(testNode1Path)
 	if err != nil {
 		Warning.Println(err)
 	}
 	err = RemoveContents(testNode2Path)
+	if err != nil {
+		Warning.Println(err)
+	}
+
+	err = os.MkdirAll(basePath, 0755)
 	if err != nil {
 		Warning.Println(err)
 	}
@@ -48,6 +56,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	// This ensures that internals like GetIPFSObj uses the test
+	// node to retrieve objects
+	MyNode = testNode1
 
 	testUser1, err = NewUser("tester1")
 	if err != nil {
@@ -244,17 +256,17 @@ func TestSignatureVerification(t *testing.T) {
 	var err error
 
 	data := Post{
-		Alias:     MyUser.Alias,
+		Alias:     testUser1.Alias,
 		Title:     "TrueTitle",
 		Content:   "TrueContent",
 		Timestamp: Now(),
 	}
 
 	// Inserted tempered data
-	obj := &IPFSObj{Key: MyUser.PubKeyRaw}
+	obj := &IPFSObj{Key: testUser1.PubKeyRaw}
 	obj.Data = structs.New(data).Map()
 
-	obj.Signature, err = Sign(MyUser, obj.Data)
+	obj.Signature, err = Sign(testUser1, obj.Data)
 	if err != nil {
 		panic(err)
 	}

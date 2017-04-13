@@ -57,6 +57,9 @@ var RiggedError = errors.New("This object got rigged")
 // the signature does not match, it means that someone pretends to
 // send content under someone else's identity, which will throw a
 // RiggedError
+//
+// @TODO this smells like refactoring since it uses global variable
+// MyNode
 func GetIPFSObj(hash string) (*IPFSObj, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), IPFSTimeoutDuration)
 	defer cancel()

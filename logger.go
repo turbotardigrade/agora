@@ -5,7 +5,10 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
+	"os"
+	"time"
 )
 
 var (
@@ -14,6 +17,35 @@ var (
 	Warning *log.Logger
 	Error   *log.Logger
 )
+
+func InitLogger() {
+	// Initialize Logger
+	if opts.Silent {
+		// If --silent is set log to a file instead
+		logPath := LogDirPath + "/log.txt"
+		err := os.MkdirAll(LogDirPath, 0755)
+		if err != nil {
+			log.Fatalln("Failed to create log directory", err)
+		}
+
+		err = CreateFileIfNotExists(logPath)
+		if err != nil {
+			log.Fatalln("Failed to create file", err)
+		}
+
+		file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalln("Failed to open log file", err)
+		}
+
+		file.WriteString("----------------------------------------\n")
+		file.WriteString("   Log of " + time.Now().Format("Jan _2 15:04") + "\n")
+		file.WriteString("----------------------------------------\n")
+		LoggerInit(file, file, file, file)
+	} else {
+		LoggerInit(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	}
+}
 
 func LoggerInit(
 	traceHandle io.Writer,

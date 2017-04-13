@@ -16,11 +16,6 @@ import (
 )
 
 const (
-	// MyNodePath specifies the path where the node repository
-	// (containing data and configuration) of the default node
-	// used by the application is stored
-	MyNodePath = "./data/MyNode"
-
 	// nBitsForKeypair sets the strength of keypair
 	nBitsForKeypair = 2048
 
@@ -29,25 +24,6 @@ const (
 	// BootstrapMultiAddr is the ipfs address of agora's bootstrap node
 	BootstrapMultiAddr = "/ip4/54.178.171.10/tcp/4001/ipfs/" + BootstrapPeerID
 )
-
-// MyNode provides a global Node instance of user's own node
-var MyNode *Node
-
-func init() {
-	var err error
-
-	if !Exists(MyNodePath) {
-		err = NewNodeRepo(MyNodePath, nil)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	MyNode, err = NewNode(MyNodePath)
-	if err != nil {
-		panic(err)
-	}
-}
 
 func monitorPeers(n *Node) {
 	go func() {
@@ -124,6 +100,19 @@ func NewNode(path string) (*Node, error) {
 		ID:       node.Identity.Pretty(),
 		cancel:   cancel,
 	}, nil
+}
+
+// CreateNodeIfNotExists creates a new ipfs repo at given location if
+// needed and returns an agora node istance
+func CreateNodeIfNotExists(path string) (*Node, error) {
+	if !Exists(path) {
+		err := NewNodeRepo(path, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return NewNode(MyNodePath)
 }
 
 var ErrSkipBlacklisted = errors.New("Peer is blacklisted, will skip this request")
