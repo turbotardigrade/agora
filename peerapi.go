@@ -13,6 +13,7 @@ func StartPeerAPI(node *Node) {
 	peerAPI.HandleFunc("/posts", GetPostsHandler)
 	peerAPI.HandleFunc("/health", GetHealthHandler)
 	peerAPI.HandleFunc("/peers", GetPeersHandler)
+	peerAPI.HandleFunc("/blacklist", GetBlacklistHandler)
 
 	Info.Println("Seed for 5 seconds...\n")
 	time.Sleep(5 * time.Second)
@@ -145,6 +146,33 @@ func GetPeersHandler(n *Node, stream net.Stream) {
 		return
 	}
 	WriteJSON(stream, GetPeersResp{Peers: peers})
+}
+
+// ----------------------------------------
+// /blacklist API
+
+// GetBlacklistResp defines response
+type GetBlacklistResp struct {
+	Peers []map[string]int
+}
+
+// GetBlacklistHandler provides stream handler
+func GetBlacklistHandler(n *Node, stream net.Stream) {
+	counts, err := n.GetBlacklist()
+	if err != nil {
+		Warning.Println("Error retrieving list of peers: ", err)
+		return
+	}
+
+	peers := make([]map[string]int, len(counts))
+	i := 0
+	for k, v := range counts {
+		peers[i] = make(map[string]int)
+		peers[i][k] = v
+		i += 1
+	}
+
+	WriteJSON(stream, GetBlacklistResp{Peers: peers})
 }
 
 // GetPeers provides helper function query peers of a node

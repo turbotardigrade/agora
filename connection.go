@@ -73,7 +73,7 @@ func (n *Node) pullPostFrom(target string) {
 
 		isAccepted := MyCurator.OnPostAdded(postObj, false)
 		if !isAccepted {
-			Info.Println("Content got rejected. Hash:", postObj.Hash)
+			Info.Println("Reject", postObj.Hash, "from", target)
 			n.onSpam(target, postObj.Hash)
 			continue
 		}
