@@ -1,5 +1,8 @@
 package main
 
+// DisableOptimisticallyUnchoke will disable unblacklisting peers when known nodes are low
+var DisableOptimisticallyUnchoke = false
+
 // DiscoverPeers gets peers from all existing peers and adds them to the DB
 func (n *Node) DiscoverPeers() error {
 	Info.Println("Start discovery...")
@@ -160,7 +163,7 @@ func (n *Node) onSpam(peer, contentHash string) {
 		return
 	}
 
-	if len(peers) >= 3 {
+	if len(peers) >= 3 || DisableOptimisticallyUnchoke {
 		return
 	}
 

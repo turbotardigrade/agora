@@ -106,6 +106,9 @@ func init() {
 
 func TestBlacklistThroughCuration(t *testing.T) {
 
+	// Disable optimistically unchoke, otherwise test will fail
+	DisableOptimisticallyUnchoke = true
+
 	// Prepare fake post and fake peer
 	peerID := "RANDOMPEERID"
 	postID := "RANDOMPOSTID"
@@ -126,7 +129,7 @@ func TestBlacklistThroughCuration(t *testing.T) {
 	}
 
 	// Report the same spam 20 times (should only report it as one)
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 30; i++ {
 		testNode1.onSpam(peerID, postID)
 	}
 
@@ -139,9 +142,9 @@ func TestBlacklistThroughCuration(t *testing.T) {
 		t.Error("Peer should not be blacklisted, because only one posts has been reported ( but repeatedly)")
 	}
 
-	// Add 5 more unique spam elements, which should be still
-	// under the blacklist threshold
-	for i := 0; i < 5; i++ {
+	// Add unique spam elements, which should be still under the
+	// blacklist threshold
+	for i := 0; i < 10; i++ {
 		testNode1.onSpam(peerID, string(i))
 	}
 
@@ -154,8 +157,8 @@ func TestBlacklistThroughCuration(t *testing.T) {
 		t.Error("Peer should not be blacklisted, because only one posts has been reported ( but repeatedly)")
 	}
 
-	// Add 5 more, now it should be blacklisted
-	for i := 0; i < 5; i++ {
+	// Add more, now it should be blacklisted
+	for i := 0; i < 55; i++ {
 		testNode1.onSpam(peerID, string(i+10))
 	}
 
