@@ -292,12 +292,20 @@ func (m *Model) GetLeastSpamBlacklisted() (string, error) {
 		return "", errors.New("Blacklist is empty")
 	}
 
-	min := 2147483647 // maxint
+	min := float32(9999999.9)
 	peer := ""
 
 	for k, v := range counts {
-		if v < min {
-			min = v
+		postCounts, err := m.GetNumberOfPostsReceivedFromPeer(string(k))
+		if err != nil {
+			Error.Println("Failed to get number of posts received from peer", err)
+			continue
+		}
+
+		spamRatio := float32(v) / float32(postCounts)
+
+		if spamRatio < min {
+			min = spamRatio
 			peer = string(k)
 		}
 	}
