@@ -153,7 +153,7 @@ func GetPeersHandler(n *Node, stream net.Stream) {
 
 // GetBlacklistResp defines response
 type GetBlacklistResp struct {
-	Peers []map[string]int
+	Peers []map[string]float32
 }
 
 // GetBlacklistHandler provides stream handler
@@ -164,11 +164,17 @@ func GetBlacklistHandler(n *Node, stream net.Stream) {
 		return
 	}
 
-	peers := make([]map[string]int, len(counts))
+	peers := make([]map[string]float32, len(counts))
 	i := 0
 	for k, v := range counts {
-		peers[i] = make(map[string]int)
-		peers[i][k] = v
+		postCount, err := n.GetNumberOfPostsReceivedFromPeer(k)
+		if err != nil {
+			Error.Println("Failed to get post received count", err)
+			postCount = 1
+		}
+
+		peers[i] = make(map[string]float32)
+		peers[i][k] = float32(v) / float32(postCount)
 		i += 1
 	}
 
