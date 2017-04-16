@@ -57,6 +57,13 @@ func init() {
 
 	InitLogger()
 
+	// Need to increse limit for number of filedescriptors to
+	// avoid running out of those due to a lot of sockets
+	err = checkAndSetUlimit()
+	if err != nil {
+		panic(err)
+	}
+
 	// Set Curator module
 	if strings.ToLower(opts.Curator) == "none" {
 		Info.Println("Using DummyCurator")

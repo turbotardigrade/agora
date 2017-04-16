@@ -10,7 +10,7 @@ import (
 	"gx/ipfs/QmQa2wf1sLFKkjHCVEbna8y5qhdMjL8vtTJSAc48vZGTer/go-ipfs/repo/fsrepo"
 )
 
-var ipfsFileDescNum = uint64(5120)
+var ipfsFileDescNum = uint64(9999)
 
 // Taken from github.com/ipfs/go-ipfs/blob/master/cmd/ipfs/ulimit_unix.go
 func checkAndSetUlimit() error {
@@ -25,7 +25,7 @@ func checkAndSetUlimit() error {
 			Error.Println("Error: adjusting max")
 			rLimit.Max = ipfsFileDescNum
 		}
-		// Info.Println("Adjusting current ulimit to ", ipfsFileDescNum, "...")
+		Info.Println("Adjusting current ulimit to ", ipfsFileDescNum, "...")
 		rLimit.Cur = ipfsFileDescNum
 	}
 

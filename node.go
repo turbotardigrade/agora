@@ -60,14 +60,6 @@ type Node struct {
 
 // NewNode creates a new Node from an existing node repository
 func NewNode(path string) (*Node, error) {
-	// Need to increse limit for number of filedescriptors to
-	// avoid running out of those due to a lot of sockets
-	// @TODO maybe move this to init
-	err := checkAndSetUlimit()
-	if err != nil {
-		return nil, err
-	}
-
 	// Open and check node repository
 	r, err := fsrepo.Open(path)
 	if err != nil {
