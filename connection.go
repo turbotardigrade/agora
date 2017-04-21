@@ -146,13 +146,13 @@ func (n *Node) onSpam(peer, contentHash string) {
 
 	// Minimum spam threshold (need at least that many to be
 	// considered for blacklist)
-	if spamCount < 20 {
+	if spamCount < 7 {
 		return
 	}
 
 	// Ratio threshold until spammer gets dumped
 	spamRatio := float32(spamCount) / float32(postCount)
-	if spamRatio > 0.5 { // equivalent to if 33 % of all posts are spam
+	if spamRatio > 0.7 { // equivalent to if 41% of all posts are spam (0.7/(1+0.7)
 		Info.Println("Blacklist peer", peer, "due to bad spam ratio", spamRatio)
 		n.AddBlacklist(peer)
 	}
