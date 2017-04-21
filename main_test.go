@@ -144,7 +144,7 @@ func TestBlacklistThroughCuration(t *testing.T) {
 
 	// Add unique spam elements, which should be still under the
 	// blacklist threshold
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		testNode1.onSpam(peerID, string(i))
 	}
 
@@ -301,7 +301,7 @@ func TestGetPostsAPI(t *testing.T) {
 func TestHealthAPI(t *testing.T) {
 	fmt.Println("\n=== Try /health")
 
-	isHealthy, err := Client{testNode1}.CheckHealth(testNode2.Identity.Pretty())
+	isHealthy, err := Client{testNode1}.CheckHealth(testNode2.ID)
 	if err != nil {
 		panic(err)
 	}
