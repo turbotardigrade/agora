@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"time"
-	"io"
+
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -152,7 +153,7 @@ func (n *GUIAPI) postPost(args map[string]interface{}) string {
 }
 
 func (n *GUIAPI) getPosts(args map[string]interface{}) string {
-	posts, err := n.GetContentPosts()
+	posts, err := n.GetPosts()
 	if err != nil {
 		return `{"error": "` + err.Error() + `"}`
 	}
