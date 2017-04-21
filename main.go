@@ -44,17 +44,10 @@ func main() {
 	if opts.NoDiscover {
 		Info.Println("Discovery disabled")
 	} else {
-		ticker := time.NewTicker(5 * time.Second)
-		quit := make(chan struct{})
 		go func() {
 			for {
-				select {
-				case <-ticker.C:
-					MyNode.DiscoverPeers()
-				case <-quit:
-					ticker.Stop()
-					return
-				}
+				MyNode.DiscoverPeers()
+				time.Sleep(20 * time.Second)
 			}
 		}()
 	}
