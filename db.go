@@ -138,7 +138,7 @@ func (m *Model) GetSomePeers() ([]string, error) {
 		return nil, err
 	}
 
-	somePeers, err := RandomStringsFromArray(peers, 2)
+	somePeers, err := RandomStringsFromArray(peers, 1)
 	if err != nil {
 		return nil, err
 	}
